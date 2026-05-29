@@ -17,8 +17,9 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 패키지 설치
+      - name: 패키지 설치 
         run: |
+          python -m pip install --upgrade pip setuptools wheel
           pip install -r scraper/requirements.txt
           playwright install chromium
           playwright install-deps chromium
