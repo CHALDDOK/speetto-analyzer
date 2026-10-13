@@ -1,67 +1,37 @@
 """
-임시 진단 스크립트: 발행내역 페이지의 실제 구조(테이블 헤더/행, XHR 요청)를 로그로 출력한다.
+임시 진단 스크립트: 발행내역 JSON API 응답 구조를 로그로 출력한다.
 """
-import asyncio, json
-from playwright.async_api import async_playwright
+import json, urllib.request
 
-URL = "https://www.dhlottery.co.kr/st/pblcnDsctn"
+API = ("https://www.dhlottery.co.kr/st/selectPblcnDsctn.do"
+       "?gdsType=&gdsPrice=&gdsStatus=&pageNum=1&recordCountPerPage=100")
 
-async def main():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        ctx = await browser.new_context(
-            user_agent=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
-            locale="ko-KR",
-        )
-        page = await ctx.new_page()
-        reqs = []
-        async def on_resp(r):
-            if r.request.resource_type in ("xhr", "fetch", "document"):
-                body = ""
-                try:
-                    body = (await r.text())[:1500]
-                except Exception:
-                    pass
-                reqs.append((r.request.method, r.url, r.status, r.headers.get("content-type", ""),
-                             r.request.post_data, body))
-        page.on("response", on_resp)
-
-        resp = await page.goto(URL, wait_until="networkidle", timeout=60000)
-        print("STATUS", resp.status if resp else None, "FINAL", page.url)
-        print("TITLE", await page.title())
-        await page.wait_for_timeout(5000)
-
-        info = await page.evaluate("""() => ({
-            text: document.body.innerText.slice(0, 3000),
-            tables: Array.from(document.querySelectorAll('table')).map(t => ({
-                cls: t.className, id: t.id,
-                caption: t.caption ? t.caption.innerText : '',
-                heads: Array.from(t.querySelectorAll('thead tr')).map(tr =>
-                    Array.from(tr.children).map(c => c.innerText.trim() + (c.colSpan > 1 ? '[cs' + c.colSpan + ']' : '') + (c.rowSpan > 1 ? '[rs' + c.rowSpan + ']' : ''))),
-                rows: Array.from(t.querySelectorAll('tbody tr')).slice(0, 8).map(tr =>
-                    Array.from(tr.children).map(c => c.innerText.trim())),
-                nrows: t.querySelectorAll('tbody tr').length,
-            })),
-            tabs: Array.from(document.querySelectorAll('button, a[role=tab], li a, select option'))
-                .map(e => e.innerText.trim()).filter(s => /스피또|500|1000|2000/.test(s)).slice(0, 40),
-            selects: Array.from(document.querySelectorAll('select')).map(s => ({
-                name: s.name, id: s.id, opts: Array.from(s.options).map(o => o.value + '=' + o.text)})),
-        })""")
-        print("=== BODY TEXT ===\n" + info["text"])
-        print("=== TABLES ===")
-        print(json.dumps(info["tables"], ensure_ascii=False, indent=1))
-        print("=== TABS ===", json.dumps(info["tabs"], ensure_ascii=False))
-        print("=== SELECTS ===", json.dumps(info["selects"], ensure_ascii=False))
-        print("=== REQUESTS ===")
-        for m, u, s, ct, pd, body in reqs:
-            print(f"{m} {s} {ct} {u}\n  post={pd}\n  body={body[:1500]!r}")
-        html = await page.content()
-        print("=== HTML (scripts mentioning ajax/url) ===")
-        import re
-        for m in re.findall(r"[\"'](/[A-Za-z0-9_/]+(?:\.do)?(?:\?[^\"']*)?)[\"']", html):
-            if any(k in m.lower() for k in ("st", "pblc", "dsctn", "select", "list")):
-                print(" ", m)
-        await browser.close()
-
-asyncio.run(main())
+req = urllib.request.Request(API, headers={
+    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
+    "Accept": "application/json, text/javascript, */*; q=0.01",
+    "X-Requested-With": "XMLHttpRequest",
+    "Referer": "https://www.dhlottery.co.kr/st/pblcnDsctn",
+})
+with urllib.request.urlopen(req, timeout=30) as r:
+    print("STATUS", r.status, r.headers.get("content-type"))
+    raw = r.read().decode("utf-8")
+j = json.loads(raw)
+data = j.get("data") or {}
+print("TOP KEYS", list(j.keys()), "DATA KEYS", list(data.keys()) if isinstance(data, dict) else type(data))
+for k, v in (data.items() if isinstance(data, dict) else []):
+    if isinstance(v, list):
+        print(f"\n=== {k}: list[{len(v)}] ===")
+        for it in v[:3]:
+            print(json.dumps(it, ensure_ascii=False))
+        if v and isinstance(v[0], dict):
+            print("keys:", list(v[0].keys()))
+    else:
+        print(f"=== {k}: {json.dumps(v, ensure_ascii=False)[:300]}")
+# 스피또2000 69회차(화면: 입고율 96%, 1등 4/10, 2등 6/30) 와 대조할 항목
+for k, v in (data.items() if isinstance(data, dict) else []):
+    if isinstance(v, list):
+        for it in v:
+            s = json.dumps(it, ensure_ascii=False)
+            if '"ltEpsd": 69' in s or '"ltEpsd":69' in s:
+                print(f"[69회차 in {k}]", s)
