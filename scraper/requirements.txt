@@ -1,2 +1,3 @@
 playwright
-playwright-stealth
+# 2.x 에서는 stealth_async 가 없어져 scrape.py 의 import 가 조용히 실패한다
+playwright-stealth==1.0.6
