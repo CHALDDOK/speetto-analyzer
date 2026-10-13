@@ -15,6 +15,10 @@ jobs:
           python-version: '3.11'
       - run: python scraper/scrape.py
       - run: python -c "import json;d=json.load(open('docs/data.json'));print(d['total']);[print(x) for x in d['data'][:5]]"
+      - run: python scraper/tg_check.py
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       - run: python scraper/notify.py   # 시크릿이 없으면 건너뜀
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
