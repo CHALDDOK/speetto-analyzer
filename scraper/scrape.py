@@ -1,181 +1,157 @@
 """
 동행복권 스피또 발행내역 수집 스크립트
 GitHub Actions에서 매시간 실행 → docs/data.json 에 저장
-"""
-import json, asyncio, re, os
-from datetime import datetime
-from playwright.async_api import async_playwright
 
-try:
-    from playwright_stealth import stealth_async
-    USE_STEALTH = True
-except ImportError:
-    USE_STEALTH = False
+발행내역 페이지(https://www.dhlottery.co.kr/st/pblcnDsctn)가 내부적으로 부르는 JSON API를 읽는다.
+- 수집에 실패하면(0건) 기존 data.json 을 건드리지 않고 종료코드 1로 끝낸다.
+- 데이터 내용이 바뀌었을 때만 data.json 을 다시 쓴다(불필요한 커밋 방지).
+"""
+import json, os, re, sys, time, urllib.request
+from datetime import datetime, timezone, timedelta
+
+API = "https://www.dhlottery.co.kr/st/selectPblcnDsctn.do"
+PAGE = "https://www.dhlottery.co.kr/st/pblcnDsctn"
+OUT = "docs/data.json"
+HISTORY = "docs/history.json"
+IMG_BASE = "https://www.dhlottery.co.kr"
+KST = timezone(timedelta(hours=9))
+PER_PAGE = 100
+
+HEADERS = {
+    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
+    "Accept": "application/json, text/javascript, */*; q=0.01",
+    "X-Requested-With": "XMLHttpRequest",
+    "Referer": PAGE,
+}
 
 # ── 점수 계산 ─────────────────────────────────────────────
+# 당첨 확률이 아니라 "주목도" 지표다. 화면 범례(docs/index.html)와 같이 유지할 것.
 def score(ship, first, second):
-    return min(100, int(ship * 0.5 + min(first * 20, 40) + min(second * 3, 9)))
+    return int(ship * 0.5 + min(first * 20, 40) + min(second * 3, 9))
 
-def num(s, f=False):
-    c = re.sub(r"[^0-9.]", "", str(s))
-    if not c: return 0.0 if f else 0
-    return float(c) if f else int(float(c))
+def ratio(s):
+    """'4매/10매' → (4, 10)"""
+    m = re.match(r"\s*([\d,]+)\D+([\d,]+)", str(s or ""))
+    if not m: return 0, 0
+    return int(m.group(1).replace(",", "")), int(m.group(2).replace(",", ""))
 
-def parse_row(cells):
-    if len(cells) < 6: return None
+def fetch(page_num):
+    qs = f"?gdsType=&gdsPrice=&gdsStatus=&pageNum={page_num}&recordCountPerPage={PER_PAGE}&_={int(time.time()*1000)}"
+    req = urllib.request.Request(API + qs, headers=HEADERS)
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+def fetch_all():
+    for attempt in range(1, 4):
+        try:
+            rows, rank_dates, page_num, total = [], [], 1, None
+            while True:
+                data = (fetch(page_num) or {}).get("data") or {}
+                total = data.get("total", 0)
+                rows += data.get("list") or []
+                rank_dates += data.get("stRnkDate") or []
+                if len(rows) >= total or not data.get("list"): break
+                page_num += 1
+            print(f"[API] total={total}, 받은 행={len(rows)}")
+            return rows, rank_dates
+        except Exception as e:
+            print(f"[시도 {attempt}] {type(e).__name__}: {str(e)[:200]}")
+            if attempt < 3: time.sleep(15)
+    return [], []
+
+def parse(rows, rank_dates):
+    # 등수별 잔여수량 기준일: (상품코드, 회차, 등수) → 'YY-MM-DD'
+    rdate = {(d.get("stGmTypeCd"), d.get("ltEpsd"), d.get("wnSqNo")): d.get("dataChgDt", "")
+             for d in rank_dates}
+    items = []
+    for r in rows:
+        try:
+            if r.get("stExpsrYn", "Y") != "Y": continue
+            first, first_total = ratio(r.get("stRnk1Rt"))
+            second, second_total = ratio(r.get("stRnk2Rt"))
+            third, third_total = ratio(r.get("stRnk3Rt"))
+            code, rnd = r.get("stGmTypeCd"), int(r.get("stEpsd") or 0)
+            price = r.get("stNtslAmt")
+            img = r.get("stMainImgStrgPathNm") or ""
+            item = {
+                "id":          f"{code}-{rnd}",
+                "code":        code,
+                "status":      r.get("ntslStatus", ""),
+                "product":     re.sub(r"\s+", "", r.get("stGmTypeNm", "")),
+                "round":       rnd,
+                "shipRate":    float(r.get("stSpmtRt") or 0),
+                "first":       first,
+                "firstTotal":  first_total,
+                "second":      second,
+                "secondTotal": second_total,
+                "third":       third,
+                "thirdTotal":  third_total,
+                "price":       f"{int(price):,}원" if price else "",
+                "prize":       r.get("rnk1Atm", ""),
+                "salesEnd":    r.get("stNtslEndDt", ""),
+                "claimEnd":    r.get("stGiveEndDt", ""),
+                "baseDate":    r.get("dataChgDt", ""),
+                "firstDate":   rdate.get((code, rnd, 1), ""),
+                "secondDate":  rdate.get((code, rnd, 2), ""),
+                "image":       (IMG_BASE + img) if img.startswith("/") else img,
+            }
+            if not item["product"] or not rnd: continue
+            item["score"] = score(item["shipRate"], first, second)
+            items.append(item)
+        except Exception as e:
+            print(f"[WARN] 파싱오류 {r}: {e}")
+    items.sort(key=lambda x: (0 if x["status"] == "판매중" else 1, -x["score"]))
+    return items
+
+def update_history(data, now):
+    """회차별 입고율·잔여 수량 변화 이력. 값이 바뀐 날에만 한 점을 추가한다.
+    형식: {"SP2000-69": [["2026-10-13", 입고율, 1등잔여, 2등잔여, 3등잔여], ...]}"""
     try:
-        item = {
-            "status":   str(cells[0]).strip(),
-            "product":  str(cells[1]).strip(),
-            "round":    num(cells[2]),
-            "shipRate": num(cells[3], f=True),
-            "first":    num(cells[4]),
-            "second":   num(cells[5]) if len(cells) > 5 else 0,
-            "price":    str(cells[6]).strip() if len(cells) > 6 else "",
-            "prize":    str(cells[7]).strip() if len(cells) > 7 else "",
-            "deadline": str(cells[8]).strip() if len(cells) > 8 else "",
-        }
-        if not item["product"]: return None
-        item["score"] = score(item["shipRate"], item["first"], item["second"])
-        return item
-    except Exception as e:
-        print(f"[WARN] 파싱오류: {e}")
-        return None
+        with open(HISTORY, encoding="utf-8") as f: hist = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        hist = {}
+    series = hist.setdefault("series", {})
+    today = now.strftime("%Y-%m-%d")
+    for d in data:
+        point = [today, d["shipRate"], d["first"], d["second"], d["third"]]
+        s = series.setdefault(d["id"], [])
+        if s and s[-1][1:] == point[1:]: continue
+        if s and s[-1][0] == today: s[-1] = point   # 같은 날 여러 번 바뀌면 마지막 값만
+        else: s.append(point)
+    hist["fields"] = ["date", "shipRate", "first", "second", "third"]
+    with open(HISTORY, "w", encoding="utf-8") as f:
+        json.dump(hist, f, ensure_ascii=False, separators=(",", ":"))
 
-# ── 메인 스크래퍼 ─────────────────────────────────────────
-async def scrape():
-    results = []
+def main():
+    rows, rank_dates = fetch_all()
+    data = parse(rows, rank_dates)
+    if not data:
+        print("\n[FAIL] 수집된 항목이 없습니다. 기존 data.json 을 유지합니다.")
+        sys.exit(1)
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            args=[
-                "--no-sandbox", "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage", "--disable-gpu",
-                "--disable-blink-features=AutomationControlled",
-            ],
-        )
-        context = await browser.new_context(
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/124.0.0.0 Safari/537.36"
-            ),
-            locale="ko-KR",
-            viewport={"width": 1280, "height": 900},
-            extra_http_headers={
-                "Accept-Language": "ko-KR,ko;q=0.9",
-                "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
-            },
-        )
+    old = {}
+    if os.path.exists(OUT):
+        try:
+            with open(OUT, encoding="utf-8") as f: old = json.load(f)
+        except Exception:
+            pass
+    if old.get("data") == data:
+        print(f"\n[SKIP] 데이터 변화 없음 ({len(data)}개 항목)")
+        return
 
-        page = await context.new_page()
-        if USE_STEALTH:
-            await stealth_async(page)
-            print("[INFO] stealth 모드 ON")
-
-        # webdriver 속성 숨기기
-        await context.add_init_script(
-            "Object.defineProperty(navigator,'webdriver',{get:()=>undefined})"
-        )
-
-        # JSON API 응답 가로채기
-        api_hits = {}
-        async def on_resp(resp):
-            try:
-                if "json" in resp.headers.get("content-type","") \
-                        and "dhlottery" in resp.url:
-                    data = await resp.json()
-                    api_hits[resp.url] = data
-                    print(f"[API] {resp.url}\n  └ {str(data)[:120]}")
-            except: pass
-        page.on("response", on_resp)
-
-        # ── 3번 시도 ────────────────────────────────────────
-        for attempt in range(1, 4):
-            print(f"\n[시도 {attempt}] https://www.dhlottery.co.kr/st/pblcnDsctn")
-            try:
-                await page.goto(
-                    "https://www.dhlottery.co.kr/st/pblcnDsctn",
-                    wait_until="networkidle", timeout=45000,
-                )
-                title = await page.title()
-                body  = await page.evaluate(
-                    "() => document.body?.innerText?.slice(0,400)||''"
-                )
-                print(f"  제목: {title}")
-                print(f"  본문: {body[:200]}")
-
-                if "차단" in body:
-                    print("  [ERROR] IP 차단 확인됨 — 재시도 중단")
-                    break
-
-                if "대기" in body:
-                    print("  [WARN] 대기열 감지 → 30초 후 재시도")
-                    await asyncio.sleep(30)
-                    continue
-
-                # 테이블 로딩 대기
-                try:
-                    await page.wait_for_selector(
-                        "table tbody tr td", timeout=20000
-                    )
-                    print("  [OK] 테이블 발견!")
-                    break
-                except:
-                    dom = await page.evaluate("""()=>({
-                        tables:document.querySelectorAll('table').length,
-                        trs:document.querySelectorAll('tr').length,
-                        tds:document.querySelectorAll('td').length,
-                        snippet:document.body?.innerHTML?.slice(0,300)||''
-                    })""")
-                    print(f"  [DEBUG] DOM 상태: tables={dom['tables']}, trs={dom['trs']}, tds={dom['tds']}")
-                    print(f"  [DEBUG] HTML snippet: {dom['snippet'][:200]}")
-                    if attempt < 3:
-                        await asyncio.sleep(15)
-
-            except Exception as e:
-                print(f"  [ERROR] {e}")
-                if attempt < 3: await asyncio.sleep(15)
-
-        # ── 데이터 추출 ─────────────────────────────────────
-        rows = await page.evaluate("""()=>{
-            let r = document.querySelectorAll('table tbody tr');
-            if(!r.length) r = document.querySelectorAll('tbody tr');
-            return Array.from(r).map(row=>
-                Array.from(row.querySelectorAll('td'))
-                    .map(td=>td.innerText?.trim()||'')
-            ).filter(r=>r.length>=4);
-        }""")
-
-        print(f"\n[DOM] {len(rows)}개 행 발견")
-        for r in rows[:3]: print(f"  {r}")
-
-        for row in rows:
-            item = parse_row(row)
-            if item: results.append(item)
-
-        print(f"[API 인터셉트] {len(api_hits)}개 API 응답 캡처")
-        for u in api_hits: print(f"  {u}")
-
-        await browser.close()
-
-    results.sort(key=lambda x:(0 if x["status"]=="판매중" else 1, -x["score"]))
-    return results
-
-
-# ── 실행 진입점 ───────────────────────────────────────────
-async def main():
-    data = await scrape()
-    os.makedirs("docs", exist_ok=True)
+    now = datetime.now(KST)
+    update_history(data, now)
     output = {
         "data": data,
-        "updated_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+        "updated_at": now.strftime("%Y-%m-%d %H:%M KST"),
+        "updated_at_iso": now.isoformat(timespec="seconds"),
         "total": len(data),
     }
-    with open("docs/data.json", "w", encoding="utf-8") as f:
+    os.makedirs(os.path.dirname(OUT), exist_ok=True)
+    with open(OUT, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
-    print(f"\n[DONE] docs/data.json 저장 완료 — {len(data)}개 항목")
+    print(f"\n[DONE] {OUT} 저장 — {len(data)}개 항목")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
