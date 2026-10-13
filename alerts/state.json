@@ -1,6 +1,5 @@
 {
   "matched": {
-    "입고율 90%↑ · 1등 2매↑|스피또1000|109": true,
-    "입고율 90%↑ · 1등 2매↑|스피또2000|69": true
+    "{\"minFirst\": null, \"minFirstPct\": 20, \"minSecond\": null, \"minSecondPct\": 0, \"minShipRate\": 90, \"products\": [], \"status\": \"판매중\"}|스피또2000|69": true
   }
 }
