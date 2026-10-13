@@ -12,6 +12,8 @@ from datetime import datetime, timezone, timedelta
 API = "https://www.dhlottery.co.kr/st/selectPblcnDsctn.do"
 PAGE = "https://www.dhlottery.co.kr/st/pblcnDsctn"
 OUT = "docs/data.json"
+HISTORY = "docs/history.json"
+IMG_BASE = "https://www.dhlottery.co.kr"
 KST = timezone(timedelta(hours=9))
 PER_PAGE = 100
 
@@ -68,9 +70,13 @@ def parse(rows, rank_dates):
             if r.get("stExpsrYn", "Y") != "Y": continue
             first, first_total = ratio(r.get("stRnk1Rt"))
             second, second_total = ratio(r.get("stRnk2Rt"))
+            third, third_total = ratio(r.get("stRnk3Rt"))
             code, rnd = r.get("stGmTypeCd"), int(r.get("stEpsd") or 0)
             price = r.get("stNtslAmt")
+            img = r.get("stMainImgStrgPathNm") or ""
             item = {
+                "id":          f"{code}-{rnd}",
+                "code":        code,
                 "status":      r.get("ntslStatus", ""),
                 "product":     re.sub(r"\s+", "", r.get("stGmTypeNm", "")),
                 "round":       rnd,
@@ -79,12 +85,16 @@ def parse(rows, rank_dates):
                 "firstTotal":  first_total,
                 "second":      second,
                 "secondTotal": second_total,
+                "third":       third,
+                "thirdTotal":  third_total,
                 "price":       f"{int(price):,}원" if price else "",
                 "prize":       r.get("rnk1Atm", ""),
                 "salesEnd":    r.get("stNtslEndDt", ""),
                 "claimEnd":    r.get("stGiveEndDt", ""),
                 "baseDate":    r.get("dataChgDt", ""),
                 "firstDate":   rdate.get((code, rnd, 1), ""),
+                "secondDate":  rdate.get((code, rnd, 2), ""),
+                "image":       (IMG_BASE + img) if img.startswith("/") else img,
             }
             if not item["product"] or not rnd: continue
             item["score"] = score(item["shipRate"], first, second)
@@ -93,6 +103,25 @@ def parse(rows, rank_dates):
             print(f"[WARN] 파싱오류 {r}: {e}")
     items.sort(key=lambda x: (0 if x["status"] == "판매중" else 1, -x["score"]))
     return items
+
+def update_history(data, now):
+    """회차별 입고율·잔여 수량 변화 이력. 값이 바뀐 날에만 한 점을 추가한다.
+    형식: {"SP2000-69": [["2026-10-13", 입고율, 1등잔여, 2등잔여, 3등잔여], ...]}"""
+    try:
+        with open(HISTORY, encoding="utf-8") as f: hist = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        hist = {}
+    series = hist.setdefault("series", {})
+    today = now.strftime("%Y-%m-%d")
+    for d in data:
+        point = [today, d["shipRate"], d["first"], d["second"], d["third"]]
+        s = series.setdefault(d["id"], [])
+        if s and s[-1][1:] == point[1:]: continue
+        if s and s[-1][0] == today: s[-1] = point   # 같은 날 여러 번 바뀌면 마지막 값만
+        else: s.append(point)
+    hist["fields"] = ["date", "shipRate", "first", "second", "third"]
+    with open(HISTORY, "w", encoding="utf-8") as f:
+        json.dump(hist, f, ensure_ascii=False, separators=(",", ":"))
 
 def main():
     rows, rank_dates = fetch_all()
@@ -112,6 +141,7 @@ def main():
         return
 
     now = datetime.now(KST)
+    update_history(data, now)
     output = {
         "data": data,
         "updated_at": now.strftime("%Y-%m-%d %H:%M KST"),

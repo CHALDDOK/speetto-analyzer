@@ -45,7 +45,7 @@ jobs:
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          git add docs/data.json alerts/state.json 2>/dev/null || git add docs/data.json
+          git add docs/*.json alerts/
           if git diff --staged --quiet; then
             echo "변경 없음 — 커밋 생략"
             exit 0

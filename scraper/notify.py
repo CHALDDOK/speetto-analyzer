@@ -6,7 +6,7 @@
 필요한 환경변수: TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID (없으면 아무것도 보내지 않고 상태도 바꾸지 않는다)
 알린 회차는 alerts/state.json 에 기록해 같은 알림이 매시간 반복되지 않게 한다.
 """
-import json, os, sys, html, urllib.request, urllib.parse
+import json, os, sys, html, urllib.request, urllib.parse, urllib.error
 from datetime import datetime, timezone, timedelta
 
 DATA = "docs/data.json"
@@ -27,15 +27,20 @@ def save(path, obj):
         f.write("\n")
 
 def send(text):
-    token, chat = os.environ.get("TELEGRAM_BOT_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    chat = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
     body = urllib.parse.urlencode({
         "chat_id": chat, "text": text, "parse_mode": "HTML",
         "disable_web_page_preview": "true",
     }).encode()
     req = urllib.request.Request(f"https://api.telegram.org/bot{token}/sendMessage", data=body)
-    with urllib.request.urlopen(req, timeout=20) as r:
-        if json.load(r).get("ok") is not True:
-            raise RuntimeError("텔레그램 전송 실패")
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            json.load(r)
+    except urllib.error.HTTPError as e:
+        # 텔레그램이 알려주는 원인(예: chat not found)을 로그에 남긴다. 토큰은 URL에만 있어 출력되지 않는다.
+        detail = e.read().decode("utf-8", "replace")[:300]
+        raise RuntimeError(f"텔레그램 전송 실패 HTTP {e.code}: {detail}") from None
 
 def matches(d, r):
     return ((not r.get("products") or d["product"] in r["products"])
