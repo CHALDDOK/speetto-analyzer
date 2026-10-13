@@ -24,10 +24,12 @@
     .hide{display:none!important}
 
     /* header */
-    header{padding:18px 16px 6px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+    header{padding:14px 12px 6px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     h1{font-size:20px;font-weight:800;letter-spacing:-.3px}
     .upd{margin-left:auto;font-size:12px;color:var(--muted)}
     .stale{width:100%;font-size:12px;color:var(--warn);margin-top:2px}
+    .bell{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;color:var(--text)}
+    .bell:active{background:var(--card2)}
 
     /* KPI */
     .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 16px}
@@ -116,6 +118,7 @@
   <header>
     <h1>스피또 발행 현황</h1>
     <span class="upd" id="upd" aria-live="polite"></span>
+    <a class="bell" href="./settings.html" aria-label="알림 설정"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></a>
     <span class="stale hide" id="stale"></span>
   </header>
 
@@ -138,7 +141,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const short = p => String(p).replace('스피또', '');
 const PRODUCTS = ['2000', '1000', '500'];
-const PAST_LIMIT = 10;
+const PAST_LIMIT = 6;
 const STALE_HOURS = 72;
 const MIN_CHART_POINTS = 4;
 

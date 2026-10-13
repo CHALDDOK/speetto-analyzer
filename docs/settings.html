@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>알림 설정 · 스피또 발행 현황</title>
+  <meta name="theme-color" content="#F8FAFC"/>
+  <meta name="robots" content="noindex"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"/>
+  <style>
+    :root{
+      --bg:#F8FAFC;--card:#FFFFFF;--card2:#F1F5F9;--text:#0F172A;--muted:#475569;--subtle:#64748B;
+      --line:#E2E8F0;--line2:#CBD5E1;--primary:#1E40AF;--primary-bg:#EFF6FF;
+      --accent:#B45309;--accent-bg:#FEF3C7;--ok:#047857;--ok-bg:#ECFDF5;--err:#B91C1C;--err-bg:#FEF2F2;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{-webkit-text-size-adjust:100%}
+    body{background:var(--bg);color:var(--text);font-family:'Pretendard Variable',Pretendard,'Noto Sans KR',system-ui,sans-serif;
+      font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums;padding-bottom:calc(32px + env(safe-area-inset-bottom))}
+    button,input{font:inherit;color:inherit}
+    button{background:none;border:0;cursor:pointer}
+    :focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
+    .wrap{max-width:720px;margin:0 auto}
+
+    header{display:flex;align-items:center;gap:4px;padding:10px 12px 6px 4px}
+    .back{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;color:var(--text)}
+    h1{font-size:20px;font-weight:800}
+
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:10px 16px;padding:16px}
+    .card h2{font-size:15px;font-weight:800;margin-bottom:2px}
+    .hint{font-size:12px;color:var(--muted)}
+
+    /* 스위치 */
+    .row{display:flex;align-items:center;gap:12px}
+    .row>div{flex:1}
+    .switch{position:relative;width:52px;height:32px;border-radius:16px;background:var(--line2);flex-shrink:0;transition:background .15s}
+    .switch::after{content:'';position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0f172a33;transition:transform .15s}
+    .switch[aria-checked="true"]{background:var(--primary)}
+    .switch[aria-checked="true"]::after{transform:translateX(20px)}
+
+    /* 상품 칩 */
+    .chips{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+    .chip{min-height:40px;padding:0 16px;border-radius:20px;border:1px solid var(--line2);background:var(--card);color:var(--muted);font-size:14px;font-weight:600}
+    .chip[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:#fff}
+
+    /* 슬라이더 */
+    .field+.field{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+    .fhead{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+    .fhead label{font-size:14px;font-weight:700}
+    .fval{font-size:20px;font-weight:800;color:var(--primary);white-space:nowrap}
+    .fval small{font-size:13px;color:var(--muted);font-weight:600}
+    input[type=range]{width:100%;height:44px;accent-color:var(--primary);margin-top:2px}
+    .ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--subtle);margin-top:-8px}
+
+    /* 미리보기 */
+    .count{font-size:14px;margin:4px 0 8px}
+    .count b{font-size:18px;color:var(--accent)}
+    .pv{border-top:1px solid var(--line)}
+    .pv div{display:grid;grid-template-columns:1.3fr .8fr 1fr 1fr;gap:6px;align-items:center;min-height:44px;border-bottom:1px solid var(--line);font-size:14px}
+    .pv div span:not(:first-child){text-align:right}
+    .pv .h{min-height:32px;font-size:12px;color:var(--muted)}
+    .none{font-size:13px;color:var(--muted);padding:12px 0 2px}
+
+    /* 저장 */
+    .token{display:flex;gap:6px;margin-top:10px}
+    .token input{flex:1;min-width:0;min-height:44px;border:1px solid var(--line2);border-radius:10px;padding:0 12px;background:var(--card);font-size:14px}
+    .token button{min-width:56px;min-height:44px;border-radius:10px;background:var(--card2);font-size:13px;font-weight:600;color:var(--muted)}
+    .remember{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-top:8px;min-height:32px}
+    .remember input{width:18px;height:18px;accent-color:var(--primary)}
+    .save{display:block;width:100%;min-height:52px;border-radius:14px;background:var(--primary);color:#fff;font-size:16px;font-weight:800;margin-top:14px}
+    .save:disabled{opacity:.6}
+    .msg{margin-top:10px;font-size:13px;border-radius:10px;padding:10px 12px;line-height:1.6}
+    .msg.ok{background:var(--ok-bg);color:var(--ok)}
+    .msg.err{background:var(--err-bg);color:var(--err)}
+    .msg.info{background:var(--card2);color:var(--muted)}
+    details{margin-top:12px;font-size:13px;color:var(--muted)}
+    summary{min-height:36px;display:flex;align-items:center;cursor:pointer;color:var(--primary);font-weight:600}
+    details ol{padding-left:18px;line-height:1.8}
+    details a{color:var(--primary)}
+    details b{color:var(--text)}
+
+    @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="back" href="./" aria-label="발행 현황으로 돌아가기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+    <h1>알림 설정</h1>
+  </header>
+
+  <section class="card">
+    <div class="row">
+      <div><h2 id="en-label">텔레그램 알림</h2><p class="hint">조건을 새로 만족한 판매 중 회차가 생기면 알려 드려요. 매시간 확인합니다.</p></div>
+      <button class="switch" id="enabled" role="switch" aria-checked="true" aria-labelledby="en-label"></button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>상품</h2>
+    <p class="hint">아무것도 고르지 않으면 모든 상품을 확인합니다.</p>
+    <div class="chips" id="products" role="group" aria-label="알림 받을 상품">
+      <button class="chip" data-p="스피또2000" aria-pressed="false">스피또2000</button>
+      <button class="chip" data-p="스피또1000" aria-pressed="false">스피또1000</button>
+      <button class="chip" data-p="스피또500" aria-pressed="false">스피또500</button>
+    </div>
+  </section>
+
+  <section class="card" aria-label="알림 조건">
+    <h2>조건 <span class="hint">· 모두 만족할 때 알림</span></h2>
+    <div class="field">
+      <div class="fhead"><label for="ship">판매점 입고율</label><span class="fval" id="ship-v"></span></div>
+      <input type="range" id="ship" min="0" max="100" step="5"/>
+      <div class="ticks" aria-hidden="true"><span>0%</span><span>50%</span><span>100%</span></div>
+    </div>
+    <div class="field">
+      <div class="fhead"><label for="first">1등 잔여 비율</label><span class="fval" id="first-v"></span></div>
+      <input type="range" id="first" min="0" max="100" step="5"/>
+      <p class="hint">전체 1등 중 아직 청구되지 않은 비율 · 예) 10매 중 3매 남음 = 30%</p>
+    </div>
+    <div class="field">
+      <div class="fhead"><label for="second">2등 잔여 비율</label><span class="fval" id="second-v"></span></div>
+      <input type="range" id="second" min="0" max="100" step="5"/>
+      <p class="hint">0%로 두면 2등 잔여는 보지 않습니다.</p>
+    </div>
+  </section>
+
+  <section class="card" aria-live="polite">
+    <h2>지금 조건이라면</h2>
+    <p class="count" id="count">미리보기를 불러오는 중입니다</p>
+    <div id="preview"></div>
+  </section>
+
+  <section class="card">
+    <h2>저장</h2>
+    <p class="hint">설정은 GitHub 저장소의 알림 설정 파일에 저장됩니다. 저장하려면 이 저장소에 쓰기 권한이 있는 GitHub 토큰이 필요합니다.</p>
+    <div class="token">
+      <input type="password" id="token" placeholder="github_pat_..." autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="GitHub 토큰"/>
+      <button id="toggle-token" aria-label="토큰 보기">보기</button>
+    </div>
+    <label class="remember"><input type="checkbox" id="remember" checked/> 이 기기에 토큰 기억하기</label>
+    <button class="save" id="save">저장</button>
+    <div id="msg" role="status"></div>
+    <details>
+      <summary>토큰 만드는 방법</summary>
+      <ol>
+        <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub 새 토큰 만들기(Fine-grained)</a>를 엽니다.</li>
+        <li>Repository access에서 <b>Only select repositories</b> → <b>speetto-analyzer</b>만 고릅니다.</li>
+        <li>Permissions → Repository permissions → <b>Contents: Read and write</b>만 켭니다.</li>
+        <li>만든 토큰(<b>github_pat_</b>로 시작)을 위 칸에 붙여 넣습니다.</li>
+      </ol>
+      <p style="margin-top:6px">토큰은 이 기기의 브라우저에만 저장되고, GitHub 외의 곳으로는 보내지 않습니다. 이 저장소 하나에만 권한을 주고, 기기를 잃어버리면 GitHub에서 토큰을 삭제하세요.</p>
+    </details>
+  </section>
+</div>
+
+<script>
+const REPO = 'CHALDDOK/speetto-analyzer';
+const BRANCH = 'main';
+const RULES_PATH = 'alerts/rules.json';
+const TOKEN_KEY = 'speetto.githubToken';
+const API = `https://api.github.com/repos/${REPO}/contents/${RULES_PATH}`;
+const DEFAULT_RULE = {name: '기본', enabled: true, products: [], status: '판매중', minShipRate: 90, minFirstPct: 20, minSecondPct: 0};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pct = (n, t) => t ? n / t * 100 : 0;
+const store = {
+  get(){ try{ return localStorage.getItem(TOKEN_KEY) || ''; }catch{ return ''; } },
+  set(v){ try{ v ? localStorage.setItem(TOKEN_KEY, v) : localStorage.removeItem(TOKEN_KEY); }catch{} },
+};
+
+let file = null, sha = null, data = [];
+let rule = {...DEFAULT_RULE};
+
+// UTF-8 ↔ base64 (GitHub contents API)
+const toB64 = s => { const b = new TextEncoder().encode(s); let bin = ''; b.forEach(x => bin += String.fromCharCode(x)); return btoa(bin); };
+const fromB64 = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, '')), c => c.charCodeAt(0)));
+
+function showMsg(kind, text){ $('msg').innerHTML = text ? `<p class="msg ${kind}">${text}</p>` : ''; }
+
+function fromRule(){
+  $('enabled').setAttribute('aria-checked', String(rule.enabled !== false));
+  document.querySelectorAll('[data-p]').forEach(b => b.setAttribute('aria-pressed', String((rule.products || []).includes(b.dataset.p))));
+  $('ship').value = rule.minShipRate ?? 0;
+  $('first').value = rule.minFirstPct ?? 0;
+  $('second').value = rule.minSecondPct ?? 0;
+  update();
+}
+
+function toRule(){
+  return {
+    ...rule,
+    enabled: $('enabled').getAttribute('aria-checked') === 'true',
+    products: [...document.querySelectorAll('[data-p][aria-pressed="true"]')].map(b => b.dataset.p),
+    status: '판매중',
+    minShipRate: +$('ship').value,
+    minFirstPct: +$('first').value,
+    minSecondPct: +$('second').value,
+  };
+}
+
+function matches(d, r){
+  return d.status === '판매중'
+    && (!r.products.length || r.products.includes(d.product))
+    && d.shipRate >= r.minShipRate
+    && pct(d.first, d.firstTotal) >= r.minFirstPct
+    && pct(d.second, d.secondTotal) >= r.minSecondPct;
+}
+
+function update(){
+  const r = toRule();
+  $('ship-v').innerHTML = `${r.minShipRate}% <small>이상</small>`;
+  $('first-v').innerHTML = `${r.minFirstPct}% <small>이상</small>`;
+  $('second-v').innerHTML = r.minSecondPct ? `${r.minSecondPct}% <small>이상</small>` : '<small>상관없음</small>';
+  if(!data.length) return;
+  const hit = data.filter(d => matches(d, r));
+  const onSale = data.filter(d => d.status === '판매중').length;
+  $('count').innerHTML = r.enabled
+    ? `판매 중 ${onSale}개 회차 중 <b>${hit.length}개</b>가 조건을 만족합니다`
+    : '알림이 꺼져 있어 보내지 않습니다';
+  $('preview').innerHTML = hit.length && r.enabled ? `<div class="pv"><div class="h"><span>회차</span><span>입고율</span><span>1등</span><span>2등</span></div>${
+    hit.map(d => `<div><span><b>${esc(d.product.replace('스피또', ''))} · ${esc(d.round)}회</b></span><span>${esc(d.shipRate)}%</span>
+      <span>${d.first}/${d.firstTotal} <small class="hint">${Math.round(pct(d.first, d.firstTotal))}%</small></span>
+      <span>${d.second}/${d.secondTotal} <small class="hint">${Math.round(pct(d.second, d.secondTotal))}%</small></span></div>`).join('')}</div>`
+    : r.enabled ? '<p class="none">조건을 조금 낮추면 해당 회차가 생길 수 있어요.</p>' : '';
+}
+
+async function loadRules(){
+  const token = $('token').value.trim();
+  const res = await fetch(`${API}?ref=${BRANCH}&t=${Date.now()}`, {
+    headers: {Accept: 'application/vnd.github+json', ...(token ? {Authorization: `Bearer ${token}`} : {})},
+    cache: 'no-store',
+  });
+  if(!res.ok) throw new Error(String(res.status));
+  const j = await res.json();
+  sha = j.sha;
+  file = JSON.parse(fromB64(j.content));
+  rule = {...DEFAULT_RULE, ...((file.rules || [])[0] || {})};
+}
+
+function errorText(status){
+  if(status === '401') return '토큰이 올바르지 않거나 만료됐습니다. 새 토큰을 넣어 주세요.';
+  if(status === '403' || status === '404') return '토큰에 이 저장소 쓰기 권한이 없습니다. 토큰 만드는 방법의 2~3번(저장소 선택, Contents 쓰기)을 확인해 주세요.';
+  if(status === '409' || status === '422') return '그사이 설정 파일이 바뀌었습니다. 다시 저장해 주세요.';
+  return `저장하지 못했습니다(오류 ${esc(status)}). 잠시 후 다시 시도해 주세요.`;
+}
+
+async function save(){
+  const token = $('token').value.trim();
+  if(!token){ showMsg('err', 'GitHub 토큰을 넣어 주세요. 아래 "토큰 만드는 방법"을 참고하세요.'); $('token').focus(); return; }
+  $('save').disabled = true; showMsg('info', '저장하는 중입니다…');
+  try{
+    if(!sha) await loadRules().catch(() => {});
+    const next = toRule();
+    const out = file ? {...file} : {};
+    out.rules = [next, ...((out.rules || []).slice(1))];
+    const body = JSON.stringify(out, null, 2) + '\n';
+    const res = await fetch(API, {
+      method: 'PUT',
+      headers: {Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, 'Content-Type': 'application/json'},
+      body: JSON.stringify({message: '알림 조건 변경 (설정 페이지)', content: toB64(body), branch: BRANCH, ...(sha ? {sha} : {})}),
+    });
+    if(!res.ok){ if(res.status === 409 || res.status === 422) sha = null; throw new Error(String(res.status)); }
+    const j = await res.json();
+    sha = j.content && j.content.sha; file = out; rule = next;
+    store.set($('remember').checked ? token : '');
+    showMsg('ok', next.enabled
+      ? '저장했습니다. 몇 분 안에 새 조건으로 한 번 확인하고, 만족하는 회차가 있으면 텔레그램으로 알려 드려요.'
+      : '저장했습니다. 텔레그램 알림이 꺼졌습니다.');
+  }catch(e){
+    showMsg('err', /^\d+$/.test(e.message) ? errorText(e.message) : '네트워크 오류로 저장하지 못했습니다. 연결을 확인해 주세요.');
+  }finally{
+    $('save').disabled = false;
+  }
+}
+
+// 이벤트
+$('enabled').addEventListener('click', e => { const b = e.currentTarget; b.setAttribute('aria-checked', String(b.getAttribute('aria-checked') !== 'true')); update(); });
+$('products').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if(!b) return; b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')); update(); });
+['ship', 'first', 'second'].forEach(id => $(id).addEventListener('input', update));
+$('toggle-token').addEventListener('click', e => {
+  const show = $('token').type === 'password';
+  $('token').type = show ? 'text' : 'password';
+  e.currentTarget.textContent = show ? '숨김' : '보기';
+  e.currentTarget.setAttribute('aria-label', show ? '토큰 숨기기' : '토큰 보기');
+});
+$('save').addEventListener('click', save);
+
+(async () => {
+  $('token').value = store.get();
+  fromRule();
+  const [r] = await Promise.allSettled([
+    loadRules(),
+    fetch('./data.json?t=' + Date.now()).then(res => res.json()).then(j => { data = j.data || []; }),
+  ]);
+  if(r.status === 'rejected') showMsg('info', '저장된 설정을 불러오지 못해 기본값을 보여 드립니다. 저장하면 이 값으로 바뀝니다.');
+  fromRule();
+  if(!data.length) $('count').textContent = '미리보기 데이터를 불러오지 못했습니다';
+})();
+</script>
+</body>
+</html>

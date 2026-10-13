@@ -42,13 +42,23 @@ def send(text):
         detail = e.read().decode("utf-8", "replace")[:300]
         raise RuntimeError(f"텔레그램 전송 실패 HTTP {e.code}: {detail}") from None
 
+def pct(n, total):
+    return n / total * 100 if total else 0
+
 def matches(d, r):
     return ((not r.get("products") or d["product"] in r["products"])
             and (not r.get("status") or d["status"] == r["status"])
             and d["shipRate"] >= r.get("minShipRate", 0)
             and d["first"]    >= r.get("minFirst", 0)
             and d["second"]   >= r.get("minSecond", 0)
-            and d["score"]    >= r.get("minScore", 0))
+            # 잔여 비율(%) 조건: 설정 페이지(docs/settings.html)에서 저장한다
+            and pct(d["first"], d.get("firstTotal"))   >= r.get("minFirstPct", 0)
+            and pct(d["second"], d.get("secondTotal")) >= r.get("minSecondPct", 0))
+
+def signature(r):
+    """조건이 바뀌면 현재 만족 중인 회차도 다시 알리도록 키에 조건 값을 넣는다"""
+    keys = ("products", "status", "minShipRate", "minFirst", "minSecond", "minFirstPct", "minSecondPct")
+    return json.dumps({k: r.get(k) for k in keys}, ensure_ascii=False, sort_keys=True)
 
 def check_rules(state):
     data = load(DATA, {}).get("data", [])
@@ -57,13 +67,14 @@ def check_rules(state):
 
     current, lines = {}, []
     for r in rules:
+        if r.get("enabled") is False: continue
         for d in data:
             if not matches(d, r): continue
-            key = f'{r["name"]}|{d["product"]}|{d["round"]}'
+            key = f'{signature(r)}|{d["product"]}|{d["round"]}'
             current[key] = True
             if key not in state.get("matched", {}):
                 lines.append(
-                    f'• <b>{html.escape(d["product"])} {d["round"]}회차</b> ({html.escape(r["name"])})\n'
+                    f'• <b>{html.escape(d["product"])} {d["round"]}회차</b>\n'
                     f'  입고율 {d["shipRate"]:g}% · 1등 잔여 {d["first"]}/{d.get("firstTotal", "?")}매 · 2등 잔여 {d["second"]}/{d.get("secondTotal", "?")}매'
                 )
 
