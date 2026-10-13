@@ -1,0 +1,19 @@
+name: 임시 진단 (발행내역 페이지 구조)
+
+on:
+  push:
+    branches: ['claude/**']
+    paths: ['scraper/diagnose.py', '.github/workflows/diagnose.yml']
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: |
+          pip install playwright
+          playwright install --with-deps chromium
+      - run: python scraper/diagnose.py
