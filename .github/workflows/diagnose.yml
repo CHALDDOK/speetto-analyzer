@@ -1,9 +1,9 @@
-name: 임시 진단 (발행내역 페이지 구조)
+name: 임시 진단 (수집·알림 시험 실행)
 
 on:
   push:
     branches: ['claude/**']
-    paths: ['scraper/diagnose.py', '.github/workflows/diagnose.yml']
+    paths: ['scraper/**', '.github/workflows/diagnose.yml']
 
 jobs:
   diagnose:
@@ -13,4 +13,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python scraper/diagnose.py
+      - run: python scraper/scrape.py
+      - run: python -c "import json;d=json.load(open('docs/data.json'));print(d['total']);[print(x) for x in d['data'][:5]]"
+      - run: python scraper/notify.py   # 시크릿이 없으면 건너뜀
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PAGE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/

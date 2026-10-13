@@ -59,7 +59,7 @@ def check_rules(state):
             if key not in state.get("matched", {}):
                 lines.append(
                     f'• <b>{html.escape(d["product"])} {d["round"]}회차</b> ({html.escape(r["name"])})\n'
-                    f'  입고율 {d["shipRate"]}% · 1등 잔여 {d["first"]}매 · 2등 잔여 {d["second"]}매'
+                    f'  입고율 {d["shipRate"]:g}% · 1등 잔여 {d["first"]}/{d.get("firstTotal", "?")}매 · 2등 잔여 {d["second"]}/{d.get("secondTotal", "?")}매'
                 )
 
     if lines:

@@ -205,11 +205,17 @@ function barHTML(r){
   </div>`;
 }
 
+function remainChip(rank, n, total, cls){
+  const of = total ? `/${esc(total)}` : '';
+  return n > 0
+    ? `<span class="chip ${cls}">${rank} ${esc(n)}${of}매 잔여</span>`
+    : `<span class="chip cempty">${rank} 모두 청구됨</span>`;
+}
+
 function cardHTML(d, i){
   const sold = d.status !== '판매중';
-  const first  = d.first  > 0 ? `<span class="chip cgold">1등 ${esc(d.first)}매 잔여</span>`  : `<span class="chip cempty">1등 모두 청구됨</span>`;
-  const second = d.second > 0 ? `<span class="chip csilv">2등 ${esc(d.second)}매 잔여</span>` : `<span class="chip cempty">2등 모두 청구됨</span>`;
-  const meta = [d.price, d.prize && `1등 ${d.prize}`].filter(Boolean).map(esc).join(' · ');
+  const meta = [d.price, d.prize && `1등 ${d.prize}`, d.salesEnd && !sold && `판매 ~${d.salesEnd}`].filter(Boolean).map(esc).join(' · ');
+  const base = d.baseDate ? `${esc(d.baseDate)} 기준` : '';
   return `<li class="card ${sold ? 'sold' : ''}" style="animation-delay:${Math.min(i, 10) * .04}s">
     ${scoreHTML(d.score)}
     <div class="cinfo">
@@ -220,7 +226,7 @@ function cardHTML(d, i){
       </div>
       ${meta ? `<div class="cmeta">${meta}</div>` : ''}
       ${barHTML(d.shipRate)}
-      <div class="chips">${first}${second}${d.deadline ? `<span class="cdate">${esc(d.deadline)}</span>` : ''}</div>
+      <div class="chips">${remainChip('1등', d.first, d.firstTotal, 'cgold')}${remainChip('2등', d.second, d.secondTotal, 'csilv')}${base ? `<span class="cdate">${base}</span>` : ''}</div>
     </div>
   </li>`;
 }
@@ -240,7 +246,7 @@ function render(){
   $('best').classList.toggle('hide', !top);
   if(top){
     $('bp-title').textContent = `${top.product} ${top.round}회차`;
-    $('bp-sub').textContent = `입고율 ${top.shipRate}% · 1등 ${top.first}매 · 2등 ${top.second}매 잔여`;
+    $('bp-sub').textContent = `입고율 ${top.shipRate}% · 1등 ${top.first}${top.firstTotal ? '/' + top.firstTotal : ''}매 · 2등 ${top.second}${top.secondTotal ? '/' + top.secondTotal : ''}매 잔여`;
     $('bp-score').innerHTML = scoreHTML(top.score, true);
   }
 
