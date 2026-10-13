@@ -2,324 +2,358 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>스피또 발행 현황</title>
-  <meta name="description" content="동행복권 스피또 회차별 입고율과 1·2등 미청구 잔여 수량을 한눈에 보는 참고용 페이지"/>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <meta name="description" content="동행복권 스피또 회차별 입고율과 1·2·3등 미청구 잔여 수량을 보는 참고용 페이지"/>
+  <meta name="theme-color" content="#F8FAFC"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"/>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
     :root{
-      --bg:#080810;--card:#0e0e1e;--line:#ffffff14;
-      --text:#e6e6f4;--muted:#a3a3c2;--dim:#8c8cab;
-      --green:#2ee88f;--yellow:#ffcc33;--orange:#ff9933;--red:#ff7766;
-      --accent:#6b46e0;--gold:#ffd700;--silver:#c8c8d0;
+      --bg:#F8FAFC;--card:#FFFFFF;--card2:#F1F5F9;--text:#0F172A;--muted:#475569;--subtle:#64748B;
+      --line:#E2E8F0;--line2:#CBD5E1;--primary:#1E40AF;--primary-bg:#EFF6FF;
+      --accent:#B45309;--accent-bg:#FEF3C7;--accent-line:#FDE68A;--accent-text:#78350F;
+      --ok:#047857;--warn:#B45309;
     }
-    body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;padding-bottom:64px;line-height:1.5}
-    button{font-family:inherit}
-    :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-
-    /* HEADER */
-    .header{background:linear-gradient(135deg,#0d0d1a,#1a0a2e,#0d0d1a);border-bottom:1px solid var(--line);padding:24px 16px 20px}
-    .h-inner{max-width:720px;margin:0 auto}
-    .h-row{display:flex;align-items:center;gap:12px;margin-bottom:6px}
-    .h-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#6633ff,#ff3366);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-    .h-title{font-size:22px;font-weight:900}
-    .h-sub{font-size:13px;color:var(--muted);margin-bottom:12px}
-    .h-status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);flex-wrap:wrap}
-    .dot{width:8px;height:8px;border-radius:50%;background:var(--dim);flex-shrink:0}
-    .dot.fresh{background:var(--green);box-shadow:0 0 8px var(--green)}
-    .dot.stale{background:var(--orange)}
-    .stale-msg{color:var(--orange)}
-
-    /* MAIN */
-    .main{max-width:720px;margin:0 auto;padding:0 16px}
-
-    /* TOP PICK */
-    .best{margin:18px 0 0;background:linear-gradient(135deg,#1a0a2e,#0a1a2e);border:1px solid #ffd70033;border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px}
-    .best-lbl{font-size:12px;color:#ffd700cc;font-weight:700;margin-bottom:2px}
-    .best-title{font-size:17px;font-weight:900;color:var(--gold)}
-    .best-sub{font-size:13px;color:var(--muted);margin-top:2px}
-
-    /* FILTERS */
-    .filters{margin:16px 0 12px;display:flex;flex-direction:column;gap:10px}
-    .group{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .glbl{font-size:12px;color:var(--dim);min-width:32px}
-    .btn{min-height:36px;padding:6px 14px;border-radius:18px;border:1px solid var(--line);cursor:pointer;font-size:13px;font-weight:700;background:#ffffff0a;color:var(--muted);transition:background .2s,color .2s}
-    .btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
-
-    /* LEGEND */
-    .legend{padding:12px 14px;background:#ffffff08;border-radius:10px;margin-bottom:12px;font-size:12px;color:var(--muted)}
-    .legend-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:6px}
-    .ldot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}
-    .formula{margin-top:6px;color:var(--dim)}
-
-    /* CARDS */
-    .cards{display:flex;flex-direction:column;gap:10px;list-style:none}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;gap:12px;align-items:flex-start;animation:fadeUp .35s ease both}
-    .card.sold{background:#0b0b16}
-    .card.sold .cprod{color:var(--muted)}
-
-    .scwrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;width:56px}
-    .sccircle{width:52px;height:52px;border-radius:50%;border:3px solid;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900}
-    .sm .sccircle{width:44px;height:44px;font-size:15px}
-    .sclbl{font-size:12px;font-weight:700}
-
-    .cinfo{flex:1;min-width:0}
-    .ctitle{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
-    .cprod{font-size:16px;font-weight:900}
-    .cround{font-size:14px;color:var(--muted);font-weight:700}
-    .cstat{font-size:12px;padding:2px 8px;border-radius:10px;font-weight:700}
-    .cstat.on{background:#2ee88f1f;color:var(--green)}
-    .cstat.off{background:#ffffff10;color:var(--muted)}
-    .cmeta{font-size:12px;color:var(--dim);margin-bottom:8px}
-
-    .barrow{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-    .barkey{font-size:12px;color:var(--dim)}
-    .barpct{font-size:14px;font-weight:700;min-width:48px}
-    .bartrack{flex:1;max-width:160px;height:6px;background:#ffffff14;border-radius:3px;overflow:hidden}
-    .barfill{height:100%;border-radius:3px}
-
-    .chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-    .chip{padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700;border:1px solid}
-    .cgold{color:var(--gold);background:#ffd70015;border-color:#ffd70040}
-    .csilv{color:var(--silver);background:#c8c8d015;border-color:#c8c8d040}
-    .cempty{color:var(--dim);background:#ffffff08;border-color:var(--line)}
-    .cdate{font-size:12px;color:var(--dim);margin-left:auto}
-
-    /* states */
-    .state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px 20px;gap:12px;text-align:center}
-    .spinner{width:40px;height:40px;border-radius:50%;border:3px solid #ffffff14;border-top-color:var(--accent);animation:spin .8s linear infinite}
-    .state-title{font-size:15px;color:var(--text);font-weight:700}
-    .state-sub{font-size:13px;color:var(--muted);white-space:pre-line}
-
-    /* notice */
-    .disc{margin-top:24px;padding:14px 16px;background:#ffffff06;border-radius:10px;border-left:3px solid var(--red);font-size:13px;color:var(--muted);line-height:1.7}
-    .disc strong{color:var(--text)}
-    .disc a{color:var(--text)}
-
-    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{-webkit-text-size-adjust:100%}
+    body{background:var(--bg);color:var(--text);font-family:'Pretendard Variable',Pretendard,'Noto Sans KR',system-ui,sans-serif;
+      font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums;padding-bottom:env(safe-area-inset-bottom)}
+    button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+    :focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
+    .wrap{max-width:720px;margin:0 auto}
     .hide{display:none!important}
-    .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+    /* header */
+    header{padding:18px 16px 6px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+    h1{font-size:20px;font-weight:800;letter-spacing:-.3px}
+    .upd{margin-left:auto;font-size:12px;color:var(--muted)}
+    .stale{width:100%;font-size:12px;color:var(--warn);margin-top:2px}
+
+    /* KPI */
+    .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 16px}
+    .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+    .kpi span{font-size:12px;color:var(--muted);display:block}
+    .kpi b{font-size:22px;font-weight:800;display:block;margin-top:2px;line-height:1.3}
+    .kpi b small{font-size:13px;font-weight:700}
+    .kpi .acc{color:var(--accent)}
+    .kpi b.sm{font-size:17px}
+    .kpi em{font-style:normal;font-size:11px;color:var(--subtle);display:block}
+
+    /* chips */
+    .chips{display:flex;gap:6px;padding:8px 16px 4px;overflow-x:auto;scrollbar-width:none}
+    .chip{min-height:40px;padding:0 16px;border-radius:20px;border:1px solid var(--line2);background:var(--card);
+      color:var(--muted);font-size:14px;font-weight:600;white-space:nowrap;transition:background .15s,color .15s}
+    .chip[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:#fff}
+
+    /* section */
+    .sec{display:flex;justify-content:space-between;align-items:baseline;padding:20px 16px 8px}
+    .sec h2{font-size:16px;font-weight:800}
+    .sec span{font-size:12px;color:var(--muted)}
+
+    /* table */
+    .tbl{background:var(--card);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .th,.tr{display:grid;grid-template-columns:1.5fr .95fr .75fr .8fr .7fr;gap:6px;align-items:center;padding:0 16px}
+    .past .th,.past .tr{grid-template-columns:1.25fr 1.35fr .75fr .6fr}
+    .th{min-height:38px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line)}
+    .th>*:not(:first-child),.tr>span:not(:first-child){text-align:right;justify-self:end}
+    .sort{min-height:38px;font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:2px}
+    .sort[aria-sort="descending"],.sort[aria-sort="ascending"]{color:var(--text);font-weight:700}
+    .tr{width:100%;min-height:60px;border-bottom:1px solid var(--line);font-size:14px;text-align:left}
+    .tr:last-of-type{border-bottom:0}
+    .tr:active{background:var(--primary-bg)}
+    .nm b{display:block;font-size:14px;font-weight:700}
+    .nm small{font-size:12px;color:var(--muted)}
+    .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok);margin-right:5px;vertical-align:middle}
+    .ship{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+    .ship i{display:block;width:48px;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+    .ship i u{display:block;height:100%;background:var(--primary)}
+    .hi{color:var(--accent);font-weight:700}
+    .dim{color:var(--subtle)}
+    .why{font-size:12px;padding:2px 7px;border-radius:6px;background:var(--card2);color:var(--muted);white-space:nowrap}
+    .why.f{background:var(--accent-bg);color:var(--accent-text)}
+    .more{display:block;width:100%;min-height:48px;font-size:14px;font-weight:600;color:var(--primary);border-top:1px solid var(--line)}
+    .empty{padding:24px 16px;font-size:14px;color:var(--muted);text-align:center}
+
+    .ref{margin:0 16px 10px;background:#FFFBEB;border:1px solid var(--accent-line);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--accent-text)}
+    .ref p+p{margin-top:2px}
+    .ref b{font-size:15px}
+
+    .foot{font-size:12px;color:var(--muted);padding:16px 16px 32px;line-height:1.8}
+    .foot strong{color:var(--text)}
+    .foot a{color:var(--text)}
+
+    .state{padding:56px 16px;text-align:center;color:var(--muted);font-size:14px}
+    .state b{display:block;color:var(--text);font-size:16px;margin-bottom:4px}
+    .state button{margin-top:14px;min-height:44px;padding:0 20px;border-radius:22px;background:var(--primary);color:#fff;font-weight:700}
+
+    /* bottom sheet */
+    dialog.sheet{position:fixed;inset:auto 0 0 0;margin:0 auto;width:100%;max-width:720px;max-height:88vh;overflow:auto;border:0;
+      border-radius:20px 20px 0 0;background:var(--card);color:var(--text);padding:10px 16px calc(20px + env(safe-area-inset-bottom));
+      box-shadow:0 -12px 40px #0f172a33}
+    dialog.sheet::backdrop{background:#0f172a66}
+    dialog.sheet[open]{animation:up .22s ease-out}
+    @keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
+    .grab{width:40px;height:4px;border-radius:2px;background:var(--line2);margin:0 auto 10px}
+    .sh{display:flex;align-items:flex-start;gap:8px}
+    .sh h3{font-size:19px;font-weight:800}
+    .sh p{font-size:12px;color:var(--muted)}
+    .close{margin-left:auto;width:40px;height:40px;border-radius:20px;background:var(--card2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0}
+    .stats div{background:var(--card2);border-radius:10px;padding:8px}
+    .stats span{font-size:11px;color:var(--muted);display:block}
+    .stats b{font-size:15px}
+    .stats small{display:block;font-size:11px;color:var(--subtle)}
+    .chart-h{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-bottom:4px;flex-wrap:wrap}
+    .chart-h i{display:inline-block;width:14px;height:0;border-top:2px solid;vertical-align:middle;margin-right:4px}
+    .cap{font-size:12px;color:var(--subtle);margin-top:6px;line-height:1.6}
+    .pending{background:var(--card2);border-radius:12px;padding:16px;font-size:13px;color:var(--muted);text-align:center}
+
+    @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
   </style>
 </head>
 <body>
+<div class="wrap">
+  <header>
+    <h1>스피또 발행 현황</h1>
+    <span class="upd" id="upd" aria-live="polite"></span>
+    <span class="stale hide" id="stale"></span>
+  </header>
 
-<header class="header">
-  <div class="h-inner">
-    <div class="h-row">
-      <div class="h-icon" aria-hidden="true">🎟️</div>
-      <h1 class="h-title">스피또 발행 현황</h1>
-    </div>
-    <p class="h-sub">회차별 판매점 입고율과 1·2등 미청구 잔여 수량 · 동행복권 공개 데이터 기반 참고용</p>
-    <div class="h-status" aria-live="polite">
-      <span class="dot" id="dot" aria-hidden="true"></span>
-      <span id="uptime">데이터 확인 중</span>
-      <span class="stale-msg hide" id="stale"></span>
-    </div>
-  </div>
-</header>
-
-<main class="main">
-  <section id="best" class="best hide" aria-label="주목도 1위 회차">
-    <div style="flex:1;min-width:0">
-      <div class="best-lbl">주목도 1위 (판매중)</div>
-      <div class="best-title" id="bp-title"></div>
-      <div class="best-sub" id="bp-sub"></div>
-    </div>
-    <div id="bp-score"></div>
-  </section>
-
-  <div id="filters" class="filters hide">
-    <div class="group" role="group" aria-label="상품">
-      <span class="glbl" aria-hidden="true">상품</span>
-      <span id="pf" style="display:contents"></span>
-    </div>
-    <div class="group" role="group" aria-label="판매 상태">
-      <span class="glbl" aria-hidden="true">상태</span>
-      <button class="btn" data-s="판매중" aria-pressed="true">판매중</button>
-      <button class="btn" data-s="전체" aria-pressed="false">전체</button>
-    </div>
-    <div class="group" role="group" aria-label="정렬 기준">
-      <span class="glbl" aria-hidden="true">정렬</span>
-      <button class="btn" data-o="score" aria-pressed="true">주목도</button>
-      <button class="btn" data-o="shipRate" aria-pressed="false">입고율</button>
-      <button class="btn" data-o="first" aria-pressed="false">1등 잔여</button>
-    </div>
+  <div id="app">
+    <div class="state">데이터를 불러오는 중입니다</div>
   </div>
 
-  <div id="legend" class="legend hide">
-    <strong style="color:var(--text)">주목도 점수</strong> — 당첨 확률이 아닙니다. 회차를 비교하기 위한 참고 지표입니다.
-    <div class="legend-row">
-      <span><span class="ldot" style="background:var(--green)"></span>85 이상 높음</span>
-      <span><span class="ldot" style="background:var(--yellow)"></span>65~84 양호</span>
-      <span><span class="ldot" style="background:var(--orange)"></span>40~64 보통</span>
-      <span><span class="ldot" style="background:var(--dim)"></span>39 이하 낮음</span>
-    </div>
-    <div class="formula">계산: 입고율×0.5 + 1등 잔여×20 (최대 40) + 2등 잔여×3 (최대 9) · 최고 99점</div>
-  </div>
+  <p class="foot">
+    <strong>잔여</strong>는 아직 청구되지 않은 당첨권 수입니다. 이미 팔렸지만 청구 전인 당첨권도 포함되므로, 남은 복권 중에 있다는 뜻은 아닙니다.
+    남은 판매 매수는 공개되지 않아 당첨 확률은 계산할 수 없습니다.<br>
+    <strong>종료 시 입고율</strong>은 판매 종료 후 마지막으로 공개된 값입니다.<br>
+    동행복권 공개 데이터 기반 참고용 · 복권은 여유 자금 안에서 즐기세요 · 도박 문제 상담 <a href="tel:1336">1336</a>
+  </p>
+</div>
 
-  <div id="content" aria-live="polite">
-    <div class="state">
-      <div class="spinner" aria-hidden="true"></div>
-      <div class="state-sub">데이터를 불러오는 중입니다</div>
-    </div>
-  </div>
-
-  <aside id="disc" class="disc hide">
-    <strong>구매 전 꼭 확인하세요</strong><br>
-    · '잔여'는 아직 <strong>청구되지 않은</strong> 당첨권 수입니다. 이미 판매됐지만 청구 전인 당첨권도 포함되므로, 남아 있는 복권 중에 있다는 뜻이 아닙니다.<br>
-    · 남은 판매 매수는 공개되지 않아 실제 당첨 확률은 계산할 수 없습니다. 특정 판매점에 당첨권이 있다는 보장도 없습니다.<br>
-    · 복권은 여유 자금 안에서 오락으로만 즐기세요. 도박 문제 상담: <a href="tel:1336">국번 없이 1336</a>
-  </aside>
-</main>
+<dialog class="sheet" id="sheet" aria-labelledby="sh-title"></dialog>
 
 <script>
-let all = [], AP = '전체', AS = '판매중', AO = 'score';
 const $ = id => document.getElementById(id);
-const STALE_HOURS = 72;
-
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const short = p => String(p).replace('스피또', '');
+const PRODUCTS = ['2000', '1000', '500'];
+const PAST_LIMIT = 10;
+const STALE_HOURS = 72;
+const MIN_CHART_POINTS = 4;
 
-function level(sc){
-  if(sc >= 85) return {c:'var(--green)',  l:'높음'};
-  if(sc >= 65) return {c:'var(--yellow)', l:'양호'};
-  if(sc >= 40) return {c:'var(--orange)', l:'보통'};
-  return {c:'var(--dim)', l:'낮음'};
+let all = [], hist = {}, product = null, sortKey = 'shipRate', sortDir = -1, showAllPast = false;
+
+// 한국 시간 기준 오늘 날짜 'YYYY-MM-DD'
+const todayKST = () => new Date(Date.now() + 9 * 36e5).toISOString().slice(0, 10);
+const addDays = (ymd, n) => new Date(Date.parse(ymd) + n * 864e5).toISOString().slice(0, 10);
+const daysBetween = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5);
+// 'YY-MM-DD' → 'YYYY-MM-DD'
+const fullDate = s => s && /^\d{2}-\d{2}-\d{2}$/.test(s) ? '20' + s : (s || '');
+const md = s => { const f = fullDate(s); return f ? f.slice(5).replace('-', '.') : ''; };
+const dday = end => {
+  if(!end) return '';
+  const n = daysBetween(todayKST(), end);
+  return n > 0 ? `D-${n}` : n === 0 ? 'D-Day' : '';
+};
+const pct = (n, t) => t ? Math.round(n / t * 100) : 0;
+
+// 종료 사유: 판매 기간 안에 1등이 모두 청구됐는지로 구분한다
+function endReason(d){
+  if(d.first > 0) return {key: 'period', label: '판매기간 만료'};
+  const fd = fullDate(d.firstDate);
+  if(fd && d.salesEnd && fd > d.salesEnd) return {key: 'after', label: '만료 후 1등 청구'};
+  return {key: 'sold', label: `1등 소진${fd ? ' ' + md(fd) : ''}`};
 }
 
-function scoreHTML(sc, small){
-  const s = level(sc);
-  return `<div class="scwrap ${small ? 'sm' : ''}" aria-label="주목도 ${sc}점, ${s.l}" role="img">
-    <div class="sccircle" style="border-color:${s.c};color:${s.c}" aria-hidden="true">${sc}</div>
-    <span class="sclbl" style="color:${s.c}" aria-hidden="true">${s.l}</span></div>`;
+// 최근 7일간 1등 잔여 감소량(=청구된 1등). 이력이 7일 이상 쌓여야 계산한다
+function weeklyClaims(){
+  const series = hist.series || {};
+  const dates = Object.values(series).flat().map(p => p[0]).sort();
+  if(!dates.length) return null;
+  const since = addDays(todayKST(), -7);
+  if(dates[0] > since) return {pending: true, days: daysBetween(dates[0], todayKST()) + 1};
+  let sum = 0;
+  for(const pts of Object.values(series)){
+    const before = [...pts].reverse().find(p => p[0] <= since);
+    if(before) sum += Math.max(0, before[2] - pts[pts.length - 1][2]);
+  }
+  return {sum};
 }
 
-function barHTML(r){
-  const c = r >= 90 ? 'var(--green)' : r >= 70 ? 'var(--yellow)' : 'var(--red)';
-  return `<div class="barrow">
-    <span class="barkey">판매점 입고율</span>
-    <span class="barpct" style="color:${c}">${esc(r)}%</span>
-    <div class="bartrack" aria-hidden="true"><div class="barfill" style="width:${Math.min(100, +r || 0)}%;background:${c}"></div></div>
-  </div>`;
+function kpiHTML(onSale){
+  const firstSum = onSale.reduce((a, d) => a + d.first, 0);
+  const w = weeklyClaims();
+  const week = !w ? '<b>-</b>' : w.pending ? `<b class="sm">집계 중</b><em>이력 ${w.days}일째 / 7일</em>` : `<b>${w.sum}<small>매</small></b>`;
+  return `<section class="kpis" aria-label="요약">
+    <div class="kpi"><span>판매 중</span><b>${onSale.length}<small>회차</small></b></div>
+    <div class="kpi"><span>1등 잔여 합계</span><b class="acc">${firstSum}<small>매</small></b></div>
+    <div class="kpi"><span>7일간 1등 청구</span>${week}</div>
+  </section>`;
 }
 
-function remainChip(rank, n, total, cls){
-  const of = total ? `/${esc(total)}` : '';
-  return n > 0
-    ? `<span class="chip ${cls}">${rank} ${esc(n)}${of}매 잔여</span>`
-    : `<span class="chip cempty">${rank} 모두 청구됨</span>`;
+function chipsHTML(){
+  const btn = (p, label) => `<button class="chip" data-p="${p ?? ''}" aria-pressed="${product === p}">${label}</button>`;
+  return `<div class="chips" role="group" aria-label="상품">${btn(null, '전체')}${PRODUCTS.map(p => btn(p, p)).join('')}</div>`;
 }
 
-function cardHTML(d, i){
-  const sold = d.status !== '판매중';
-  const meta = [d.price, d.prize && `1등 ${d.prize}`, d.salesEnd && !sold && `판매 ~${d.salesEnd}`].filter(Boolean).map(esc).join(' · ');
-  const base = d.baseDate ? `${esc(d.baseDate)} 기준` : '';
-  return `<li class="card ${sold ? 'sold' : ''}" style="animation-delay:${Math.min(i, 10) * .04}s">
-    ${scoreHTML(d.score)}
-    <div class="cinfo">
-      <div class="ctitle">
-        <span class="cprod">${esc(d.product)}</span>
-        <span class="cround">${esc(d.round)}회차</span>
-        <span class="cstat ${sold ? 'off' : 'on'}">${esc(d.status)}</span>
-      </div>
-      ${meta ? `<div class="cmeta">${meta}</div>` : ''}
-      ${barHTML(d.shipRate)}
-      <div class="chips">${remainChip('1등', d.first, d.firstTotal, 'cgold')}${remainChip('2등', d.second, d.secondTotal, 'csilv')}${base ? `<span class="cdate">${base}</span>` : ''}</div>
-    </div>
-  </li>`;
+function sortBtn(key, label){
+  const on = sortKey === key;
+  return `<button class="sort" data-sort="${key}" aria-sort="${on ? (sortDir < 0 ? 'descending' : 'ascending') : 'none'}">${label}<span aria-hidden="true">${on ? (sortDir < 0 ? '▼' : '▲') : ''}</span></button>`;
 }
 
-function filtered(){
-  const key = {score:'score', shipRate:'shipRate', first:'first'}[AO];
-  return all
-    .filter(d => AP === '전체' || d.product === AP)
-    .filter(d => AS === '전체' || d.status === AS)
-    .sort((a, b) => b[key] - a[key] || b.score - a.score);
+function shipCell(v){
+  return `<span class="ship">${esc(v)}%<i aria-hidden="true"><u style="width:${Math.min(100, +v || 0)}%"></u></i></span>`;
+}
+
+function onSaleHTML(list){
+  const key = {shipRate: d => d.shipRate, first: d => d.first, second: d => d.second, end: d => d.salesEnd}[sortKey];
+  list = [...list].sort((a, b) => (key(a) > key(b) ? 1 : key(a) < key(b) ? -1 : 0) * sortDir);
+  const rows = list.map(d => `<button class="tr" data-id="${esc(d.id)}" aria-label="${esc(d.product)} ${esc(d.round)}회차 상세 보기">
+      <span class="nm"><b><i class="dot" aria-hidden="true"></i>${esc(short(d.product))} · ${esc(d.round)}회</b><small>1등 ${esc(d.prize)}</small></span>
+      ${shipCell(d.shipRate)}
+      <span class="${d.first ? 'hi' : 'dim'}">${d.first}/${d.firstTotal}</span>
+      <span>${d.second}/${d.secondTotal}</span>
+      <span>${esc(dday(d.salesEnd) || md(d.salesEnd))}</span>
+    </button>`).join('');
+  return `<div class="sec"><h2>판매 중</h2><span>${list[0] ? `잔여 기준일 ${esc(md(list[0].baseDate))}` : ''}</span></div>
+    <div class="tbl">
+      <div class="th"><span>회차</span>${sortBtn('shipRate', '입고율')}${sortBtn('first', '1등')}${sortBtn('second', '2등')}${sortBtn('end', '종료')}</div>
+      ${rows || '<div class="empty">판매 중인 회차가 없습니다.</div>'}
+    </div>`;
+}
+
+function refHTML(past){
+  const lines = PRODUCTS.filter(p => !product || p === product).map(p => {
+    const sold = past.filter(d => short(d.product) === p && endReason(d).key === 'sold');
+    if(!sold.length) return '';
+    const avg = Math.round(sold.reduce((a, d) => a + d.shipRate, 0) / sold.length);
+    const min = Math.min(...sold.map(d => d.shipRate));
+    return `<p>스피또${p}: 평균 <b>${avg}%</b> (최저 ${min}%, ${sold.length}개 회차)</p>`;
+  }).join('');
+  return lines ? `<div class="ref"><p>판매 기간 중 1등이 모두 청구되어 끝난 회차의 <strong>종료 시 입고율</strong></p>${lines}</div>` : '';
+}
+
+function pastHTML(past){
+  past = [...past].sort((a, b) => (b.salesEnd || '').localeCompare(a.salesEnd || '') || b.round - a.round);
+  const shown = showAllPast ? past : past.slice(0, PAST_LIMIT);
+  const rows = shown.map(d => {
+    const r = endReason(d);
+    return `<button class="tr" data-id="${esc(d.id)}" aria-label="${esc(d.product)} ${esc(d.round)}회차 상세 보기">
+      <span class="nm"><b>${esc(short(d.product))} · ${esc(d.round)}회</b><small>${esc(md(d.salesEnd))} 종료</small></span>
+      <span><span class="why ${r.key === 'sold' ? 'f' : ''}">${esc(r.label)}</span></span>
+      <span>${esc(d.shipRate)}%</span>
+      <span class="${d.first ? '' : 'dim'}">${d.first}/${d.firstTotal}</span>
+    </button>`;
+  }).join('');
+  const more = past.length > PAST_LIMIT
+    ? `<button class="more" id="more">${showAllPast ? '접기' : `${past.length - PAST_LIMIT}개 더 보기`}</button>` : '';
+  return `<div class="sec"><h2>지난 회차</h2><span>판매 종료 ${past.length}회차</span></div>
+    ${refHTML(past)}
+    <div class="tbl past">
+      <div class="th"><span>회차</span><span>종료 사유</span><span>입고율</span><span>1등</span></div>
+      ${rows || '<div class="empty">판매 종료된 회차가 없습니다.</div>'}
+      ${more}
+    </div>`;
 }
 
 function render(){
-  const items = filtered();
-  const top = items.find(d => d.status === '판매중');
+  const list = all.filter(d => !product || short(d.product) === product);
+  const onSale = list.filter(d => d.status === '판매중');
+  const past = list.filter(d => d.status !== '판매중');
+  $('app').innerHTML = kpiHTML(onSale) + chipsHTML() + onSaleHTML(onSale) + pastHTML(past);
+}
 
-  $('best').classList.toggle('hide', !top);
-  if(top){
-    $('bp-title').textContent = `${top.product} ${top.round}회차`;
-    $('bp-sub').textContent = `입고율 ${top.shipRate}% · 1등 ${top.first}${top.firstTotal ? '/' + top.firstTotal : ''}매 · 2등 ${top.second}${top.secondTotal ? '/' + top.secondTotal : ''}매 잔여`;
-    $('bp-score').innerHTML = scoreHTML(top.score, true);
+// ── 상세 시트 ──────────────────────────────────────────
+function chartHTML(d){
+  const pts = (hist.series || {})[d.id] || [];
+  if(pts.length < MIN_CHART_POINTS){
+    return `<div class="pending">추이 그래프는 변화 기록이 ${MIN_CHART_POINTS}번 이상 쌓이면 표시됩니다.<br>현재 ${pts.length}번 기록됨</div>`;
   }
-
-  $('content').innerHTML = items.length
-    ? `<ul class="cards">${items.map(cardHTML).join('')}</ul>`
-    : `<div class="state"><div class="state-sub">선택한 조건에 맞는 회차가 없습니다.</div></div>`;
+  const W = 358, H = 160, pad = 10;
+  const t0 = Date.parse(pts[0][0]), span = Math.max(1, Date.parse(pts[pts.length - 1][0]) - t0);
+  const x = p => pad + (Date.parse(p[0]) - t0) / span * (W - pad * 2);
+  const yShip = v => H - pad - v / 100 * (H - pad * 2);
+  const yFirst = v => H - pad - (d.firstTotal ? v / d.firstTotal : 0) * (H - pad * 2);
+  const line = (f, i) => pts.map((p, k) => `${k ? 'L' : 'M'}${x(p).toFixed(1)} ${f(p[i]).toFixed(1)}`).join(' ');
+  const a = pts[0], b = pts[pts.length - 1];
+  const summary = `${md(a[0])}부터 ${md(b[0])}까지 입고율 ${a[1]}% → ${b[1]}%, 1등 잔여 ${a[2]}매 → ${b[2]}매`;
+  return `<div class="chart-h"><span><i style="border-color:var(--primary)"></i>입고율</span><span><i style="border-color:var(--accent);border-top-style:dashed"></i>1등 잔여 (전체 ${d.firstTotal}매 기준)</span></div>
+    <svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(summary)}">
+      ${[0, .5, 1].map(r => { const y = H - pad - r * (H - pad * 2); return `<line x1="${pad}" x2="${W - pad}" y1="${y}" y2="${y}" stroke="#E2E8F0"/>`; }).join('')}
+      <path d="${line(yShip, 1)}" fill="none" stroke="#1E40AF" stroke-width="2.5"/>
+      <path d="${line(yFirst, 2)}" fill="none" stroke="#B45309" stroke-width="2.5" stroke-dasharray="6 4"/>
+      <circle cx="${x(b)}" cy="${yShip(b[1])}" r="4" fill="#1E40AF"/><circle cx="${x(b)}" cy="${yFirst(b[2])}" r="4" fill="#B45309"/>
+    </svg>
+    <p class="cap">${esc(summary)}</p>`;
 }
 
-function setPressed(selector, active){
-  document.querySelectorAll(selector).forEach(b => b.setAttribute('aria-pressed', String(b === active)));
+function openSheet(id){
+  const d = all.find(x => x.id === id); if(!d) return;
+  const sale = d.status === '판매중';
+  const sub = [sale ? `판매종료 ${md(d.salesEnd)} (${dday(d.salesEnd) || '마감'})` : `${md(d.salesEnd)} 판매 종료 · ${endReason(d).label}`,
+               d.claimEnd && `지급기한 ${d.claimEnd.slice(2).replace(/-/g, '.')}`].filter(Boolean).join(' · ');
+  $('sheet').innerHTML = `<div class="grab" aria-hidden="true"></div>
+    <div class="sh"><div><h3 id="sh-title">${esc(d.product)} ${esc(d.round)}회차</h3><p>${esc(sub)}</p></div>
+      <button class="close" id="close" aria-label="닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="stats">
+      <div><span>입고율</span><b>${esc(d.shipRate)}%</b></div>
+      <div><span>1등 잔여</span><b class="hi">${d.first}/${d.firstTotal}</b>${d.firstDate ? `<small>${esc(md(d.firstDate))} 기준</small>` : ''}</div>
+      <div><span>2등 잔여</span><b>${d.second}/${d.secondTotal}</b>${d.secondDate ? `<small>${esc(md(d.secondDate))} 기준</small>` : ''}</div>
+      <div><span>3등 잔여</span><b>${pct(d.third, d.thirdTotal)}%</b><small>${(d.third ?? 0).toLocaleString()}매</small></div>
+    </div>
+    ${chartHTML(d)}
+    <p class="cap">1등 당첨금 ${esc(d.prize)} · ${esc(d.price)} · 데이터 기준일 ${esc(md(d.baseDate))}</p>`;
+  $('close').addEventListener('click', () => $('sheet').close());
+  $('sheet').showModal();
 }
+// 시트 바깥(배경)을 누르면 닫는다
+$('sheet').addEventListener('click', e => { if(e.target === $('sheet')) $('sheet').close(); });
 
-function buildProductFilter(){
-  const products = [...new Set(all.map(d => d.product))].sort((a, b) => (parseInt(b.replace(/\D/g, '')) || 0) - (parseInt(a.replace(/\D/g, '')) || 0));
-  $('pf').innerHTML = ['전체', ...products].map(p =>
-    `<button class="btn" data-p="${esc(p)}" aria-pressed="${p === AP}">${esc(p)}</button>`).join('');
-}
+// ── 이벤트 ──────────────────────────────────────────────
+$('app').addEventListener('click', e => {
+  const chip = e.target.closest('[data-p]');
+  if(chip){ product = chip.dataset.p || null; render(); return; }
+  const s = e.target.closest('[data-sort]');
+  if(s){ const k = s.dataset.sort; sortDir = sortKey === k ? -sortDir : (k === 'end' ? 1 : -1); sortKey = k; render(); return; }
+  if(e.target.closest('#more')){ showAllPast = !showAllPast; render(); return; }
+  const row = e.target.closest('[data-id]');
+  if(row) openSheet(row.dataset.id);
+});
 
 function showUpdated(j){
-  const iso = j.updated_at_iso;
-  const t = iso ? new Date(iso) : null;
-  if(!t || isNaN(t)){ $('uptime').textContent = j.updated_at ? `데이터 기준: ${j.updated_at}` : ''; return; }
+  const t = j.updated_at_iso ? new Date(j.updated_at_iso) : null;
+  if(!t || isNaN(t)){ $('upd').textContent = j.updated_at || ''; return; }
+  const label = t.toLocaleString('ko-KR', {timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false});
+  $('upd').textContent = `${label} 갱신`;
   const h = (Date.now() - t) / 36e5;
-  const ago = h < 1 ? '1시간 이내' : h < 48 ? `${Math.floor(h)}시간 전` : `${Math.floor(h / 24)}일 전`;
-  const label = t.toLocaleString('ko-KR', {timeZone:'Asia/Seoul', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'});
-  $('uptime').textContent = `마지막 데이터 변경: ${label} (${ago})`;
-  const stale = h > STALE_HOURS;
-  $('dot').className = 'dot ' + (stale ? 'stale' : 'fresh');
-  $('stale').classList.toggle('hide', !stale);
-  $('stale').textContent = stale ? '· 오래된 데이터일 수 있습니다. 공식 사이트에서 함께 확인하세요.' : '';
+  $('stale').classList.toggle('hide', h <= STALE_HOURS);
+  $('stale').textContent = `마지막 변경 후 ${Math.floor(h / 24)}일이 지났습니다. 공식 사이트에서 함께 확인하세요.`;
 }
 
 function showError(title, sub){
-  $('content').innerHTML = `<div class="state" role="alert">
-    <div style="font-size:32px" aria-hidden="true">⚠️</div>
-    <div class="state-title">${esc(title)}</div>
-    <div class="state-sub">${esc(sub)}</div>
-    <button class="btn" id="retry">다시 시도</button>
-  </div>`;
+  $('app').innerHTML = `<div class="state" role="alert"><b>${esc(title)}</b>${esc(sub)}<br><button id="retry">다시 시도</button></div>`;
   $('retry').addEventListener('click', load);
 }
 
 async function load(){
   try{
-    const res = await fetch('./data.json?t=' + Date.now());
+    const [res, hres] = await Promise.all([
+      fetch('./data.json?t=' + Date.now()),
+      fetch('./history.json?t=' + Date.now()).catch(() => null),
+    ]);
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const j = await res.json();
+    try{ hist = hres && hres.ok ? await hres.json() : {}; }catch{ hist = {}; }
     showUpdated(j);
-    if(!j.data || !j.data.length){
-      showError('아직 표시할 데이터가 없습니다', '데이터 수집이 준비 중입니다. 잠시 후 다시 확인해 주세요.');
-      return;
-    }
+    if(!j.data || !j.data.length){ showError('아직 표시할 데이터가 없습니다', '잠시 후 다시 확인해 주세요.'); return; }
     all = j.data;
-    buildProductFilter();
-    ['filters', 'legend', 'disc'].forEach(id => $(id).classList.remove('hide'));
     render();
   }catch(e){
     console.error(e);
     showError('데이터를 불러오지 못했습니다', '네트워크 상태를 확인한 뒤 다시 시도해 주세요.');
   }
 }
-
-$('pf').addEventListener('click', e => {
-  const b = e.target.closest('[data-p]'); if(!b) return;
-  AP = b.dataset.p; setPressed('[data-p]', b); render();
-});
-document.querySelectorAll('[data-s]').forEach(b => b.addEventListener('click', () => {
-  AS = b.dataset.s; setPressed('[data-s]', b); render();
-}));
-document.querySelectorAll('[data-o]').forEach(b => b.addEventListener('click', () => {
-  AO = b.dataset.o; setPressed('[data-o]', b); render();
-}));
-
 load();
 </script>
 </body>
