@@ -5,6 +5,10 @@ on:
     # 정각은 GitHub 예약 실행이 몰려 지연이 커서 7분으로 둔다
     - cron: '7 * * * *'
   workflow_dispatch:
+  # 알림 설정 페이지에서 조건을 저장하면 바로 한 번 확인한다
+  push:
+    branches: [main]
+    paths: ['alerts/rules.json']
 
 permissions:
   contents: write
