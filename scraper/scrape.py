@@ -106,17 +106,25 @@ def parse(rows, rank_dates):
 
 def update_history(data, now):
     """회차별 입고율·잔여 수량 변화 이력. 값이 바뀐 날에만 한 점을 추가한다.
-    형식: {"SP2000-69": [["2026-10-13", 입고율, 1등잔여, 2등잔여, 3등잔여], ...]}"""
+    형식: {"SP2000-69": [["2026-10-13", 입고율, 1등잔여, 2등잔여, 3등잔여], ...]}
+
+    soldOut: 1등 잔여가 1 이상 → 0 으로 바뀌는 것을 직접 본 회차의 그 순간 입고율.
+    이력 수집 전에 이미 0이던 회차는 그 시점 값을 알 수 없어 기록하지 않는다.
+    형식: {"SP2000-69": {"seen": "2026-10-20", "shipRate": 97.0, "firstDate": "26-10-19"}}"""
     try:
         with open(HISTORY, encoding="utf-8") as f: hist = json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         hist = {}
     series = hist.setdefault("series", {})
+    sold_out = hist.setdefault("soldOut", {})
     today = now.strftime("%Y-%m-%d")
     for d in data:
         point = [today, d["shipRate"], d["first"], d["second"], d["third"]]
         s = series.setdefault(d["id"], [])
         if s and s[-1][1:] == point[1:]: continue
+        if s and s[-1][2] > 0 and d["first"] == 0 and d["id"] not in sold_out:
+            sold_out[d["id"]] = {"seen": today, "shipRate": d["shipRate"], "firstDate": d["firstDate"]}
+            print(f"[1등 소진] {d['id']} 입고율 {d['shipRate']}%")
         if s and s[-1][0] == today: s[-1] = point   # 같은 날 여러 번 바뀌면 마지막 값만
         else: s.append(point)
     hist["fields"] = ["date", "shipRate", "first", "second", "third"]
