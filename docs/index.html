@@ -129,7 +129,8 @@
   <p class="foot">
     <strong>잔여</strong>는 아직 청구되지 않은 당첨권 수입니다. 이미 팔렸지만 청구 전인 당첨권도 포함되므로, 남은 복권 중에 있다는 뜻은 아닙니다.
     남은 판매 매수는 공개되지 않아 당첨 확률은 계산할 수 없습니다.<br>
-    <strong>종료 시 입고율</strong>은 판매 종료 후 마지막으로 공개된 값입니다.<br>
+    <strong>소진 시 입고율</strong>은 1등 잔여가 0으로 바뀐 것을 처음 수집한 때의 입고율이고, <strong>종료 후</strong> 값은 판매 종료 후 마지막으로 공개된 입고율입니다.
+    수집 시작(2026.10.13) 전에 끝난 회차는 소진 시 값이 없습니다.<br>
     동행복권 공개 데이터 기반 참고용 · 복권은 여유 자금 안에서 즐기세요 · 도박 문제 상담 <a href="tel:1336">1336</a>
   </p>
 </div>
@@ -226,15 +227,26 @@ function onSaleHTML(list){
     </div>`;
 }
 
+// 1등 잔여가 0이 되는 순간을 수집기가 직접 본 회차의 그때 입고율 (scrape.py update_history)
+const soldOutAt = d => (hist.soldOut || {})[d.id];
+
 function refHTML(past){
+  const stat = arr => arr.length && {avg: Math.round(arr.reduce((a, v) => a + v, 0) / arr.length), min: Math.min(...arr), n: arr.length};
   const lines = PRODUCTS.filter(p => !product || p === product).map(p => {
     const sold = past.filter(d => short(d.product) === p && endReason(d).key === 'sold');
-    if(!sold.length) return '';
-    const avg = Math.round(sold.reduce((a, d) => a + d.shipRate, 0) / sold.length);
-    const min = Math.min(...sold.map(d => d.shipRate));
-    return `<p>스피또${p}: 평균 <b>${avg}%</b> (최저 ${min}%, ${sold.length}개 회차)</p>`;
+    const at = stat(sold.filter(soldOutAt).map(d => soldOutAt(d).shipRate));
+    const fin = stat(sold.map(d => d.shipRate));
+    if(!fin) return '';
+    const atText = at ? `소진 시 평균 <b>${at.avg}%</b> (최저 ${at.min}%, ${at.n}개 회차)` : '소진 시 기록 없음';
+    return `<p>스피또${p}: ${atText} · 종료 후 평균 ${fin.avg}% (${fin.n}개)</p>`;
   }).join('');
-  return lines ? `<div class="ref"><p>판매 기간 중 1등이 모두 청구되어 끝난 회차의 <strong>종료 시 입고율</strong></p>${lines}</div>` : '';
+  return lines ? `<div class="ref"><p>판매 기간 중 1등이 모두 청구되어 끝난 회차의 입고율</p>${lines}</div>` : '';
+}
+
+// 소진 시 입고율이 기록된 회차는 그 값을, 아니면 종료 후 마지막 값을 보여준다
+function pastShipCell(d){
+  const at = soldOutAt(d);
+  return at ? `<span class="nm"><b>${esc(at.shipRate)}%</b><small>소진 시</small></span>` : `<span>${esc(d.shipRate)}%</span>`;
 }
 
 function pastHTML(past){
@@ -245,7 +257,7 @@ function pastHTML(past){
     return `<button class="tr" data-id="${esc(d.id)}" aria-label="${esc(d.product)} ${esc(d.round)}회차 상세 보기">
       <span class="nm"><b>${esc(short(d.product))} · ${esc(d.round)}회</b><small>${esc(md(d.salesEnd))} 종료</small></span>
       <span><span class="why ${r.key === 'sold' ? 'f' : ''}">${esc(r.label)}</span></span>
-      <span>${esc(d.shipRate)}%</span>
+      ${pastShipCell(d)}
       <span class="${d.first ? '' : 'dim'}">${d.first}/${d.firstTotal}</span>
     </button>`;
   }).join('');
@@ -305,6 +317,7 @@ function openSheet(id){
       <div><span>2등 잔여</span><b>${d.second}/${d.secondTotal}</b>${d.secondDate ? `<small>${esc(md(d.secondDate))} 기준</small>` : ''}</div>
       <div><span>3등 잔여</span><b>${pct(d.third, d.thirdTotal)}%</b><small>${(d.third ?? 0).toLocaleString()}매</small></div>
     </div>
+    ${soldOutAt(d) ? `<p class="cap">1등 소진 시 입고율 <b>${esc(soldOutAt(d).shipRate)}%</b> (${esc(md(soldOutAt(d).seen))} 수집 시점)</p>` : ''}
     ${chartHTML(d)}
     <p class="cap">1등 당첨금 ${esc(d.prize)} · ${esc(d.price)} · 데이터 기준일 ${esc(md(d.baseDate))}</p>`;
   $('close').addEventListener('click', () => $('sheet').close());

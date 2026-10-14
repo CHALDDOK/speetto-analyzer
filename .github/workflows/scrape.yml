@@ -2,10 +2,11 @@ name: 스피또 데이터 자동 수집
 
 on:
   schedule:
+    # 하루 한 번, 월~토 16:07 KST (= 07:07 UTC, 같은 날짜라 요일도 그대로)
     # 정각은 GitHub 예약 실행이 몰려 지연이 커서 7분으로 둔다
-    - cron: '7 * * * *'
+    - cron: '7 7 * * 1-6'
   workflow_dispatch:
-  # 알림 설정 페이지에서 조건을 저장하면 바로 한 번 확인한다
+  # 알림 설정 페이지에서 조건을 저장하면 새로 수집하지 않고 기존 데이터로 바로 한 번 확인한다
   push:
     branches: [main]
     paths: ['alerts/rules.json']
@@ -27,14 +28,15 @@ jobs:
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - name: 코드 가져오기
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Python 설치
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
       - name: 데이터 수집 실행
+        if: github.event_name != 'push'
         run: python scraper/scrape.py
 
       - name: 조건 알림 (텔레그램)
