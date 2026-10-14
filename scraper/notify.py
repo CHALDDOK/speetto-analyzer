@@ -4,7 +4,7 @@
 - --failure: 수집 실패를 알린다(24시간에 한 번까지).
 
 필요한 환경변수: TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID (없으면 아무것도 보내지 않고 상태도 바꾸지 않는다)
-알린 회차는 alerts/state.json 에 기록해 같은 알림이 매시간 반복되지 않게 한다.
+알린 회차는 alerts/state.json 에 기록해 같은 알림이 실행마다 반복되지 않게 한다.
 """
 import json, os, sys, html, urllib.request, urllib.parse, urllib.error
 from datetime import datetime, timezone, timedelta
