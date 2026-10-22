@@ -76,7 +76,7 @@
       "product": "스피또1000",
       "round": 110,
       "shipRate": 55.0,
-      "first": 9,
+      "first": 8,
       "firstTotal": 12,
       "second": 46,
       "secondTotal": 60,
@@ -87,7 +87,7 @@
       "salesEnd": "2026-11-30",
       "claimEnd": "2027-11-30",
       "baseDate": "26-10-16",
-      "firstDate": "26-10-14",
+      "firstDate": "26-10-22",
       "secondDate": "",
       "image": "https://www.dhlottery.co.kr/img/board/content/202609/S1000_110_PC_Main_96dpi_20260918113359.png",
       "score": 76
@@ -783,7 +783,7 @@
       "score": 46
     }
   ],
-  "updated_at": "2026-10-16 21:20 KST",
-  "updated_at_iso": "2026-10-16T21:20:08+09:00",
+  "updated_at": "2026-10-22 21:55 KST",
+  "updated_at_iso": "2026-10-22T21:55:55+09:00",
   "total": 34
 }
