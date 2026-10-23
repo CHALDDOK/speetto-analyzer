@@ -1,5 +1,6 @@
 {
   "matched": {
     "{\"minFirst\": null, \"minFirstPct\": 20, \"minSecond\": null, \"minSecondPct\": 0, \"minShipRate\": 90, \"products\": [], \"status\": \"판매중\"}|스피또2000|69": true
-  }
+  },
+  "fail_notified_at": "2026-10-23T21:37:02+09:00"
 }
