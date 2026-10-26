@@ -1,36 +1,13 @@
 {
   "data": [
     {
-      "id": "SP1000-109",
-      "code": "SP1000",
-      "status": "판매중",
-      "product": "스피또1000",
-      "round": 109,
-      "shipRate": 100.0,
-      "first": 2,
-      "firstTotal": 12,
-      "second": 4,
-      "secondTotal": 60,
-      "third": 31964,
-      "thirdTotal": 330000,
-      "price": "1,000원",
-      "prize": "5억원",
-      "salesEnd": "2026-10-31",
-      "claimEnd": "2027-10-31",
-      "baseDate": "26-10-23",
-      "firstDate": "26-10-08",
-      "secondDate": "",
-      "image": "https://www.dhlottery.co.kr/img/board/content/202608/S1000_109_PC_Main_96dpi_20260814133623.png",
-      "score": 99
-    },
-    {
       "id": "SP1000-110",
       "code": "SP1000",
       "status": "판매중",
       "product": "스피또1000",
       "round": 110,
       "shipRate": 70.0,
-      "first": 8,
+      "first": 6,
       "firstTotal": 12,
       "second": 33,
       "secondTotal": 60,
@@ -41,10 +18,33 @@
       "salesEnd": "2026-11-30",
       "claimEnd": "2027-11-30",
       "baseDate": "26-10-23",
-      "firstDate": "26-10-22",
+      "firstDate": "26-10-26",
       "secondDate": "",
       "image": "https://www.dhlottery.co.kr/img/board/content/202609/S1000_110_PC_Main_96dpi_20260918113359.png",
       "score": 84
+    },
+    {
+      "id": "SP1000-109",
+      "code": "SP1000",
+      "status": "판매중",
+      "product": "스피또1000",
+      "round": 109,
+      "shipRate": 100.0,
+      "first": 1,
+      "firstTotal": 12,
+      "second": 4,
+      "secondTotal": 60,
+      "third": 31964,
+      "thirdTotal": 330000,
+      "price": "1,000원",
+      "prize": "5억원",
+      "salesEnd": "2026-10-31",
+      "claimEnd": "2027-10-31",
+      "baseDate": "26-10-23",
+      "firstDate": "26-10-26",
+      "secondDate": "",
+      "image": "https://www.dhlottery.co.kr/img/board/content/202608/S1000_109_PC_Main_96dpi_20260814133623.png",
+      "score": 79
     },
     {
       "id": "SP2000-69",
@@ -806,7 +806,7 @@
       "score": 46
     }
   ],
-  "updated_at": "2026-10-24 20:57 KST",
-  "updated_at_iso": "2026-10-24T20:57:45+09:00",
+  "updated_at": "2026-10-26 23:10 KST",
+  "updated_at_iso": "2026-10-26T23:10:12+09:00",
   "total": 35
 }
