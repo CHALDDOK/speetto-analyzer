@@ -70,29 +70,6 @@
       "score": 78
     },
     {
-      "id": "SP1000-109",
-      "code": "SP1000",
-      "status": "판매중",
-      "product": "스피또1000",
-      "round": 109,
-      "shipRate": 100.0,
-      "first": 1,
-      "firstTotal": 12,
-      "second": 2,
-      "secondTotal": 60,
-      "third": 25693,
-      "thirdTotal": 330000,
-      "price": "1,000원",
-      "prize": "5억원",
-      "salesEnd": "2026-10-31",
-      "claimEnd": "2027-10-31",
-      "baseDate": "26-10-30",
-      "firstDate": "26-10-26",
-      "secondDate": "",
-      "image": "https://www.dhlottery.co.kr/img/board/content/202608/S1000_109_PC_Main_96dpi_20260814133623.png",
-      "score": 76
-    },
-    {
       "id": "SP2000-70",
       "code": "SP2000",
       "status": "판매중",
@@ -206,6 +183,29 @@
       "secondDate": "",
       "image": "https://www.dhlottery.co.kr/img/board/content/202512/1750988621830.png",
       "score": 84
+    },
+    {
+      "id": "SP1000-109",
+      "code": "SP1000",
+      "status": "판매종료",
+      "product": "스피또1000",
+      "round": 109,
+      "shipRate": 100.0,
+      "first": 1,
+      "firstTotal": 12,
+      "second": 2,
+      "secondTotal": 60,
+      "third": 25693,
+      "thirdTotal": 330000,
+      "price": "1,000원",
+      "prize": "5억원",
+      "salesEnd": "2026-10-31",
+      "claimEnd": "2027-10-31",
+      "baseDate": "26-10-30",
+      "firstDate": "26-10-26",
+      "secondDate": "",
+      "image": "https://www.dhlottery.co.kr/img/board/content/202608/S1000_109_PC_Main_96dpi_20260814133623.png",
+      "score": 76
     },
     {
       "id": "SP1000-106",
@@ -806,7 +806,7 @@
       "score": 46
     }
   ],
-  "updated_at": "2026-10-30 23:03 KST",
-  "updated_at_iso": "2026-10-30T23:03:20+09:00",
+  "updated_at": "2026-11-03 01:59 KST",
+  "updated_at_iso": "2026-11-03T01:59:59+09:00",
   "total": 35
 }
