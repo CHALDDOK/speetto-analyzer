@@ -270,7 +270,7 @@
       "prize": "5억원",
       "salesEnd": "2026-08-31",
       "claimEnd": "2027-08-31",
-      "baseDate": "26-11-06",
+      "baseDate": "26-11-12",
       "firstDate": "26-08-03",
       "secondDate": "",
       "image": "https://www.dhlottery.co.kr/img/board/content/202605/S1000_107_PC_Main_96dpi_20260528093842.png",
@@ -339,7 +339,7 @@
       "prize": "5억원",
       "salesEnd": "2026-09-30",
       "claimEnd": "2027-09-30",
-      "baseDate": "26-11-06",
+      "baseDate": "26-11-12",
       "firstDate": "26-09-14",
       "secondDate": "",
       "image": "https://www.dhlottery.co.kr/img/board/content/202607/S1000_108_PC_Main_96dpi_20260703153852.png",
@@ -806,7 +806,7 @@
       "score": 46
     }
   ],
-  "updated_at": "2026-11-12 00:06 KST",
-  "updated_at_iso": "2026-11-12T00:06:03+09:00",
+  "updated_at": "2026-11-13 00:56 KST",
+  "updated_at_iso": "2026-11-13T00:56:21+09:00",
   "total": 35
 }
