@@ -7,7 +7,7 @@
       "product": "스피또2000",
       "round": 70,
       "shipRate": 64.0,
-      "first": 4,
+      "first": 2,
       "firstTotal": 8,
       "second": 14,
       "secondTotal": 24,
@@ -18,7 +18,7 @@
       "salesEnd": "2026-12-31",
       "claimEnd": "2027-12-31",
       "baseDate": "26-11-20",
-      "firstDate": "26-11-20",
+      "firstDate": "26-11-26",
       "secondDate": "26-11-11",
       "image": "https://www.dhlottery.co.kr/img/board/content/202609/S2000_70_PC_Main_96dpi_20260921094725.png",
       "score": 81
@@ -829,7 +829,7 @@
       "score": 46
     }
   ],
-  "updated_at": "2026-11-26 02:55 KST",
-  "updated_at_iso": "2026-11-26T02:55:38+09:00",
+  "updated_at": "2026-11-27 02:40 KST",
+  "updated_at_iso": "2026-11-27T02:40:26+09:00",
   "total": 36
 }
